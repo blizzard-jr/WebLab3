@@ -107,7 +107,6 @@
     <target name="music" depends="build">
         <sound>
             <success source="${success.sound}"/>
-            <fail source="${fail.sound}"/>
         </sound>
     </target>
 
