@@ -1,7 +1,5 @@
 package org.example.weblab3;
 
-
-
 import jakarta.faces.bean.ManagedBean;
 import jakarta.faces.bean.ViewScoped;
 
@@ -13,6 +11,6 @@ import java.util.Date;
 @ViewScoped
 public class ClockBean implements Serializable {
     public String getCurrentTime() {
-        return new SimpleDateFormat("HH:mm:ss dd.MM.yyyy").format(new Date())
+        return new SimpleDateFormat("HH:mm:ss dd.MM.yyyy").format(new Date());
     }
 }
