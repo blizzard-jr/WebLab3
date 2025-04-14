@@ -24,8 +24,8 @@
     <entry key="git.dir">${build.dir}/git</entry>
     
     <!-- Параметры архивов -->
-    <entry key="jar.name">WebLab3.jar</entry>
-    <entry key="alt.jar.name">WebLab3-alt.jar</entry>
+    <entry key="war.name">WebLab3.war</entry>
+    <entry key="alt.war.name">WebLab3-alt.war</entry>
     <entry key="zip.name">WebLab3-team.zip</entry>
     
     <!-- Параметры для MD5 и SHA-1 -->

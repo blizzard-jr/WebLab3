@@ -20,84 +20,111 @@
     <!-- Локальные ресурсы -->
     <h:outputStylesheet name="css/styles.css" />
 
-    <title>Проверка точки на плосксти</title>
+    <title>WebLab3</title>
 </h:head>
 
 <h:body>
     <div class="background"></div>
 
-        <h:form id="pointForm" styleClass="main">
-            <h:panelGrid columns="1" styleClass="table">
-                <h:panelGroup layout="block" style="text-align: center;">
-                    <canvas id="graphCanvas" width="200" height="200" />
+    <div>
+        <h1>Лабораторная работа #3</h1>
+        <p>Пример веб-страницы для демонстрации WAR-архива</p>
+        
+        <h:panelGrid columns="2">
+            <h:outputLabel for="time" value="Текущее время:" />
+            <h:outputText id="time" value="#{clockBean.currentTime}" />
+        </h:panelGrid>
+        
+        <p:fieldset legend="Проверка точки">
+            <h:form>
+                <h:panelGrid columns="2">
+                    <h:outputLabel for="x" value="X:" />
+                    <p:inputNumber id="x" value="#{mainBean.x}" />
+                    
+                    <h:outputLabel for="y" value="Y:" />
+                    <p:inputNumber id="y" value="#{mainBean.y}" />
+                    
+                    <h:outputLabel for="r" value="R:" />
+                    <p:inputNumber id="r" value="#{mainBean.r}" />
+                </h:panelGrid>
+                
+                <p:commandButton value="Проверить" action="#{mainBean.checkPoint}" update="@form" />
+            </h:form>
+        </p:fieldset>
+    </div>
+
+    <h:form id="pointForm" styleClass="main">
+        <h:panelGrid columns="1" styleClass="table">
+            <h:panelGroup layout="block" style="text-align: center;">
+                <canvas id="graphCanvas" width="200" height="200" />
+            </h:panelGroup>
+
+            <h:panelGrid columns="3">
+                <h:panelGroup styleClass="xxx" layout="block">
+                    <h:outputLabel for="xSpinner" value="Изменение X:"/>
+                    <p:spinner id="xSpinner" value="#{mainBean.x}" min="-4" max="4" stepFactor="0.5"/>
                 </h:panelGroup>
 
-                <h:panelGrid columns="3">
-                    <h:panelGroup styleClass="xxx" layout="block">
-                        <h:outputLabel for="xSpinner" value="Изменение X:"/>
-                        <p:spinner id="xSpinner" value="#{mainBean.x}" min="-4" max="4" stepFactor="0.5"/>
-                    </h:panelGroup>
+                <h:panelGroup styleClass="yyy" layout="block">
+                    <h:outputLabel for="yInput" value="Изменение Y:"/>
+                    <h:inputText id="yInput" value="#{mainBean.y}" placeholder="-5 ... 5">
+                        <f:validateDoubleRange minimum="-5" maximum="5"/>
+                    </h:inputText>
+                </h:panelGroup>
 
-                    <h:panelGroup styleClass="yyy" layout="block">
-                        <h:outputLabel for="yInput" value="Изменение Y:"/>
-                        <h:inputText id="yInput" value="#{mainBean.y}" placeholder="-5 ... 5">
-                            <f:validateDoubleRange minimum="-5" maximum="5"/>
-                        </h:inputText>
-                    </h:panelGroup>
-
-                    <h:panelGroup styleClass="rrr" layout="block">
-                        <h:outputLabel for="rSpinner" value="Изменение R:"/>
-                        <p:spinner id="rSpinner" value="#{mainBean.r}" min="1" max="3" stepFactor="0.5" widgetVar="spinnerWidget">
-                            <p:ajax event="change" oncomplete="checkSelectedR()" />
-                        </p:spinner>
-                    </h:panelGroup>
-                </h:panelGrid>
+                <h:panelGroup styleClass="rrr" layout="block">
+                    <h:outputLabel for="rSpinner" value="Изменение R:"/>
+                    <p:spinner id="rSpinner" value="#{mainBean.r}" min="1" max="3" stepFactor="0.5" widgetVar="spinnerWidget">
+                        <p:ajax event="change" oncomplete="checkSelectedR()" />
+                    </p:spinner>
+                </h:panelGroup>
             </h:panelGrid>
+        </h:panelGrid>
 
-            <h:inputHidden id="hiddenX" value="#{mainBean.x}" />
-            <h:inputHidden id="hiddenY" value="#{mainBean.y}" />
-            <h:inputHidden id="hiddenR" value="#{mainBean.r}" />
+        <h:inputHidden id="hiddenX" value="#{mainBean.x}" />
+        <h:inputHidden id="hiddenY" value="#{mainBean.y}" />
+        <h:inputHidden id="hiddenR" value="#{mainBean.r}" />
 
-            <h:commandButton id="check" value="Проверить" action="#{mainBean.checkPoint}" styleClass="checkButton">
-                <f:ajax execute="xSpinner yInput rSpinner" render="result" onevent="handleAjaxEvent"/>
-            </h:commandButton>
+        <h:commandButton id="check" value="Проверить" action="#{mainBean.checkPoint}" styleClass="checkButton">
+            <f:ajax execute="xSpinner yInput rSpinner" render="result" onevent="handleAjaxEvent"/>
+        </h:commandButton>
 
-            <h:outputScript>
-                function handleAjaxEvent(data) {
-                    if (data.status === 'success') {
-                        console.log('AJAX запрос завершен успешно');
-                        drawPoint();
-                    }
+        <h:outputScript>
+            function handleAjaxEvent(data) {
+                if (data.status === 'success') {
+                    console.log('AJAX запрос завершен успешно');
+                    drawPoint();
                 }
-            </h:outputScript>
+            }
+        </h:outputScript>
 
-            <h:dataTable styleClass="result" id="result" value="#{resultManager.allResults}" var="point">
-                <h:column>
-                    <f:facet name="header">X</f:facet>
-                    <h:outputText id="xValue" value="#{point.x}"/>
-                </h:column>
-                <h:column>
-                    <f:facet name="header">Y</f:facet>
-                    <h:outputText id="yValue" value="#{point.y}"/>
-                </h:column>
-                <h:column>
-                    <f:facet name="header">R</f:facet>
-                    <h:outputText id="rValue" value="#{point.r}" />
-                </h:column>
-                <h:column>
-                    <f:facet name="header">Результ</f:facet>
-                    <h:outputText id="resultValue" value="#{point.result}"/>
-                </h:column>
-                <h:column>
-                    <f:facet name="header">Выполнение</f:facet>
-                    <h:outputText value="#{point.executionTime} ns"/>
-                </h:column>
-                <h:column>
-                    <f:facet name="header">Время</f:facet>
-                    <h:outputText value="#{point.checkTime}"/>
-                </h:column>
-            </h:dataTable>
-        </h:form>
+        <h:dataTable styleClass="result" id="result" value="#{resultManager.allResults}" var="point">
+            <h:column>
+                <f:facet name="header">X</f:facet>
+                <h:outputText id="xValue" value="#{point.x}"/>
+            </h:column>
+            <h:column>
+                <f:facet name="header">Y</f:facet>
+                <h:outputText id="yValue" value="#{point.y}"/>
+            </h:column>
+            <h:column>
+                <f:facet name="header">R</f:facet>
+                <h:outputText id="rValue" value="#{point.r}" />
+            </h:column>
+            <h:column>
+                <f:facet name="header">Результ</f:facet>
+                <h:outputText id="resultValue" value="#{point.result}"/>
+            </h:column>
+            <h:column>
+                <f:facet name="header">Выполнение</f:facet>
+                <h:outputText value="#{point.executionTime} ns"/>
+            </h:column>
+            <h:column>
+                <f:facet name="header">Время</f:facet>
+                <h:outputText value="#{point.checkTime}"/>
+            </h:column>
+        </h:dataTable>
+    </h:form>
 
     <!-- JavaScript в конце body -->
     <h:outputScript name="js/main.js" target="body"/>

@@ -23,14 +23,17 @@
         </javac>
     </target>
 
-    <!-- Компиляция и упаковка в исполняемый jar-архив -->
-    <target name="build" depends="compile" description="Компиляция исходных кодов проекта и их упаковка в исполняемый jar-архив">
-        <jar destfile="${dist.dir}/${jar.name}" basedir="${classes.dir}">
+    <!-- Компиляция и упаковка в исполняемый war-архив -->
+    <target name="build" depends="compile" description="Компиляция исходных кодов проекта и их упаковка в исполняемый war-архив">
+        <war destfile="${dist.dir}/${war.name}" webxml="${webapp.dir}/WEB-INF/web.xml">
+            <classes dir="${classes.dir}"/>
+            <fileset dir="${webapp.dir}" excludes="WEB-INF/web.xml"/>
             <manifest>
-                <attribute name="Main-Class" value="${main.class}"/>
+                <attribute name="Implementation-Title" value="WebLab3"/>
                 <attribute name="Implementation-Version" value="${version}"/>
+                <attribute name="Built-By" value="${user.name}"/>
             </manifest>
-        </jar>
+        </war>
     </target>
 
     <!-- Удаление скомпилированных классов и временных файлов -->
@@ -76,13 +79,13 @@
             <bottom><![CDATA[<i>Copyright &#169; ${year} ${organization}. All Rights Reserved.</i>]]></bottom>
             <classpath refid="classpath"/>
         </javadoc>
-        <jar destfile="${dist.dir}/${jar.name}" update="true">
-            <fileset dir="${doc.dir}" includes="**/*"/>
+        <war destfile="${dist.dir}/${war.name}" update="true">
+            <webinf dir="${doc.dir}" prefix="WEB-INF/docs"/>
             <manifest>
                 <attribute name="MD5-Digest" value="${md5}"/>
                 <attribute name="SHA1-Digest" value="${sha1}"/>
             </manifest>
-        </jar>
+        </war>
     </target>
 
     <!-- Копирование файлов локализации -->
@@ -94,7 +97,7 @@
 
     <!-- Перемещение собранного проекта на сервер -->
     <target name="scp" depends="build" description="Перемещение собранного проекта по scp на выбранный сервер">
-        <scp file="${dist.dir}/${jar.name}" 
+        <scp file="${dist.dir}/${war.name}" 
              todir="${scp.user}@${scp.host}:${scp.dir}" 
              password="${scp.password}" 
              trust="true"/>
@@ -206,7 +209,7 @@
         </replaceregexp>
         <antcall target="build">
             <param name="src.dir" value="${alt.dir}"/>
-            <param name="jar.name" value="${alt.jar.name}"/>
+            <param name="war.name" value="${alt.war.name}"/>
         </antcall>
     </target>
 
@@ -232,14 +235,11 @@
 
     <!-- Сборка и запуск в альтернативном окружении -->
     <target name="env" description="Осуществляет сборку и запуск программы в альтернативных окружениях">
-        <java classname="${main.class}" fork="true">
-            <classpath>
-                <path refid="classpath"/>
-                <pathelement location="${dist.dir}/${jar.name}"/>
-            </classpath>
-            <jvmarg value="-Djava.version=${java.version}"/>
-            <jvmarg value="-Duser.language=${user.language}"/>
-        </java>
+        <!-- Для WAR-архива используем развертывание на сервер приложений -->
+        <echo message="Для запуска WAR архива в альтернативном окружении необходимо:"/>
+        <echo message="1. Сделать сборку: ant build"/>
+        <echo message="2. Развернуть WAR-архив на сервере приложений: ant scp"/>
+        <echo message="3. Открыть в браузере http://${scp.host}:8080/WebLab3/"/>
     </target>
 
     <!-- Получение из git-репозитория и упаковка в zip-архив -->
@@ -270,8 +270,11 @@
                 <copy todir="${git.dir}/rev-@{revision}">
                     <fileset dir="${git.dir}" excludes=".git/**, revisions.txt, rev-*/**"/>
                 </copy>
+                <ant dir="${git.dir}/rev-@{revision}" target="build" inheritAll="false"/>
             </sequential>
         </for>
-        <zip destfile="${dist.dir}/${zip.name}" basedir="${git.dir}" excludes=".git/**, revisions.txt"/>
+        <zip destfile="${dist.dir}/${zip.name}">
+            <fileset dir="${git.dir}" includes="rev-*/**/*.war" excludes=".git/**"/>
+        </zip>
     </target>
 </project> 
