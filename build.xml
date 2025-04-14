@@ -42,7 +42,6 @@
     <!-- Удаление скомпилированных классов и временных файлов -->
     <target name="clean" description="Удаление скомпилированных классов проекта и всех временных файлов">
         <delete dir="${build.dir}"/>
-        <delete dir="${dist.dir}"/>
         <delete dir="${report.dir}"/>
     </target>
 
