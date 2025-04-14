@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <testsuites>
-  <testsuite errors="1" failures="0" hostname="gr1ckly-pc" id="0" name="PointResultTest" package="org.example.weblab3" skipped="0" tests="1" time="0.0" timestamp="2025-04-14T19:07:11">
+  <testsuite errors="1" failures="0" hostname="gr1ckly-pc" id="0" name="PointResultTest" package="org.example.weblab3" skipped="0" tests="1" time="0.0" timestamp="2025-04-14T19:14:12">
       <properties>
           <property name="ant.library.dir" value="/usr/share/ant/lib" />
 
@@ -44,7 +44,7 @@
 
           <property name="zip.name" value="WebLab3-team.zip" />
 
-          <property name="sun.java.command" value="org.apache.tools.ant.taskdefs.optional.junit.JUnitTestRunner org.example.weblab3.PointResultTest skipNonTests=false filtertrace=true haltOnError=false haltOnFailure=false formatter=org.apache.tools.ant.taskdefs.optional.junit.SummaryJUnitResultFormatter showoutput=false outputtoformatters=true logfailedtests=true threadid=0 logtestlistenerevents=false formatter=org.apache.tools.ant.taskdefs.optional.junit.XMLJUnitResultFormatter,/home/gr1ckly/Desktop/gr1ckly_files/ITMO_CSE_27/2024-2025/BSE/Lab_3/WebLab3/build/reports/TEST-org.example.weblab3.PointResultTest.xml crashfile=/home/gr1ckly/Desktop/gr1ckly_files/ITMO_CSE_27/2024-2025/BSE/Lab_3/WebLab3/junitvmwatcher3853453596710941503.properties propsfile=/home/gr1ckly/Desktop/gr1ckly_files/ITMO_CSE_27/2024-2025/BSE/Lab_3/WebLab3/junit10231867604998138911.properties" />
+          <property name="sun.java.command" value="org.apache.tools.ant.taskdefs.optional.junit.JUnitTestRunner org.example.weblab3.PointResultTest skipNonTests=false filtertrace=true haltOnError=false haltOnFailure=false formatter=org.apache.tools.ant.taskdefs.optional.junit.SummaryJUnitResultFormatter showoutput=false outputtoformatters=true logfailedtests=true threadid=0 logtestlistenerevents=false formatter=org.apache.tools.ant.taskdefs.optional.junit.XMLJUnitResultFormatter,/home/gr1ckly/Desktop/gr1ckly_files/ITMO_CSE_27/2024-2025/BSE/Lab_3/WebLab3/build/reports/TEST-org.example.weblab3.PointResultTest.xml crashfile=/home/gr1ckly/Desktop/gr1ckly_files/ITMO_CSE_27/2024-2025/BSE/Lab_3/WebLab3/junitvmwatcher17661187096824461878.properties propsfile=/home/gr1ckly/Desktop/gr1ckly_files/ITMO_CSE_27/2024-2025/BSE/Lab_3/WebLab3/junit627666348816355478.properties" />
 
           <property name="scp.dir" value="/path/to/deploy" />
 
