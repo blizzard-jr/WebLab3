@@ -33,9 +33,9 @@
     <entry key="sha1">SHA-1 хеш будет сгенерирован автоматически</entry>
     
     <!-- Параметры SCP -->
-    <entry key="scp.host">localhost</entry>
-    <entry key="scp.user">user</entry>
-    <entry key="scp.password">password</entry>
+    <entry key="scp.host">se.helios.ifmo.ru</entry>
+    <entry key="scp.user">s409111</entry>
+    <entry key="scp.password">nTIb@6424</entry>
     <entry key="scp.dir">/path/to/deploy</entry>
     
     <!-- Параметры звуковых файлов -->

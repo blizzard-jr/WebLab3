@@ -121,8 +121,6 @@
 
     <!-- Создание отчета о прохождении тестов -->
     <target name="report" depends="test" description="В случае успешного прохождения тестов сохраняет отчет junit в формате xml">
-        <mkdir dir="${report.dir}/git"/>
-        
         <!-- Получаем текущую ревизию Git -->
         <exec executable="git" outputproperty="git.revision">
             <arg value="rev-parse"/>
