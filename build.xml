@@ -1,0 +1,277 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="WebLab3" default="build" basedir="." xmlns:ivy="antlib:org.apache.ivy.ant">
+    <!-- Подключение файла с параметрами -->
+    <property file="properties.xml"/>
+
+    <!-- Определение путей к директориям -->
+    <path id="classpath">
+        <fileset dir="${lib.dir}" includes="**/*.jar"/>
+    </path>
+
+    <!-- Подготовка директорий -->
+    <target name="init">
+        <mkdir dir="${build.dir}"/>
+        <mkdir dir="${dist.dir}"/>
+        <mkdir dir="${report.dir}"/>
+    </target>
+
+    <!-- Компиляция исходных кодов проекта -->
+    <target name="compile" depends="init" description="Компиляция исходных кодов проекта">
+        <mkdir dir="${classes.dir}"/>
+        <javac srcdir="${src.dir}" destdir="${classes.dir}" includeantruntime="false">
+            <classpath refid="classpath"/>
+        </javac>
+    </target>
+
+    <!-- Компиляция и упаковка в исполняемый jar-архив -->
+    <target name="build" depends="compile" description="Компиляция исходных кодов проекта и их упаковка в исполняемый jar-архив">
+        <jar destfile="${dist.dir}/${jar.name}" basedir="${classes.dir}">
+            <manifest>
+                <attribute name="Main-Class" value="${main.class}"/>
+                <attribute name="Implementation-Version" value="${version}"/>
+            </manifest>
+        </jar>
+    </target>
+
+    <!-- Удаление скомпилированных классов и временных файлов -->
+    <target name="clean" description="Удаление скомпилированных классов проекта и всех временных файлов">
+        <delete dir="${build.dir}"/>
+        <delete dir="${dist.dir}"/>
+        <delete dir="${report.dir}"/>
+    </target>
+
+    <!-- Запуск JUnit-тестов -->
+    <target name="test" depends="build" description="Запуск junit-тестов проекта">
+        <mkdir dir="${report.dir}"/>
+        <junit printsummary="yes" haltonfailure="no" fork="true">
+            <classpath>
+                <path refid="classpath"/>
+                <pathelement location="${classes.dir}"/>
+            </classpath>
+            <formatter type="xml"/>
+            <batchtest todir="${report.dir}">
+                <fileset dir="${test.dir}" includes="**/*Test.java"/>
+            </batchtest>
+        </junit>
+        <junitreport todir="${report.dir}">
+            <fileset dir="${report.dir}" includes="TEST-*.xml"/>
+            <report format="frames" todir="${report.dir}/html"/>
+        </junitreport>
+    </target>
+
+    <!-- Валидация XML-файлов -->
+    <target name="xml" description="Валидация всех xml-файлов в проекте">
+        <xmlvalidate lenient="yes">
+            <fileset dir="${src.dir}" includes="**/*.xml"/>
+            <fileset dir="${webapp.dir}" includes="**/*.xml"/>
+        </xmlvalidate>
+    </target>
+
+    <!-- Генерация JavaDoc -->
+    <target name="doc" description="Добавление в MANIFEST.MF MD5 и SHA-1 файлов проекта, а также генерация и добавление в архив javadoc">
+        <javadoc sourcepath="${src.dir}" destdir="${doc.dir}" 
+                 author="true" version="true" use="true" 
+                 windowtitle="${ant.project.name} API">
+            <doctitle><![CDATA[<h1>${ant.project.name}</h1>]]></doctitle>
+            <bottom><![CDATA[<i>Copyright &#169; ${year} ${organization}. All Rights Reserved.</i>]]></bottom>
+            <classpath refid="classpath"/>
+        </javadoc>
+        <jar destfile="${dist.dir}/${jar.name}" update="true">
+            <fileset dir="${doc.dir}" includes="**/*"/>
+            <manifest>
+                <attribute name="MD5-Digest" value="${md5}"/>
+                <attribute name="SHA1-Digest" value="${sha1}"/>
+            </manifest>
+        </jar>
+    </target>
+
+    <!-- Копирование файлов локализации -->
+    <target name="native2ascii" description="Преобразование native2ascii для копий файлов локализации">
+        <mkdir dir="${native.dir}"/>
+        <native2ascii src="${i18n.dir}" dest="${native.dir}" 
+                      includes="**/*.properties" encoding="UTF-8"/>
+    </target>
+
+    <!-- Перемещение собранного проекта на сервер -->
+    <target name="scp" depends="build" description="Перемещение собранного проекта по scp на выбранный сервер">
+        <scp file="${dist.dir}/${jar.name}" 
+             todir="${scp.user}@${scp.host}:${scp.dir}" 
+             password="${scp.password}" 
+             trust="true"/>
+    </target>
+
+    <!-- Воспроизведение музыки по завершению сборки -->
+    <target name="music" depends="build" description="Воспроизведение музыки по завершению сборки">
+        <echo message="Воспроизведение звука после успешной сборки!" />
+        <echo message="(В реальной настройке здесь бы использовался звуковой файл)" />
+    </target>
+
+    <!-- Создание отчета о прохождении тестов -->
+    <target name="report" depends="test" description="В случае успешного прохождения тестов сохраняет отчет junit в формате xml">
+        <mkdir dir="${svn.dir}"/>
+        <exec executable="svn" outputproperty="svn.revision">
+            <arg value="info"/>
+            <arg value="--revision"/>
+            <arg value="HEAD"/>
+        </exec>
+        <echo file="${report.dir}/svn-revision.txt">${svn.revision}</echo>
+        <svn>
+            <commit file="${report.dir}" message="Committing test report for revision ${svn.revision}"/>
+        </svn>
+    </target>
+
+    <!-- История версий -->
+    <target name="history" description="Если проект не удаётся скомпилировать, загружается предыдущая версия из репозитория svn">
+        <trycatch>
+            <try>
+                <antcall target="compile"/>
+            </try>
+            <catch>
+                <echo message="Компиляция не удалась, загружаем предыдущую версию"/>
+                <svn>
+                    <update dir="${basedir}" revision="PREV"/>
+                </svn>
+                <antcall target="compile"/>
+                <svn>
+                    <diff outputFile="${report.dir}/diff.txt"/>
+                </svn>
+            </catch>
+        </trycatch>
+    </target>
+
+    <!-- Создание альтернативной версии -->
+    <target name="alt" description="Создаёт альтернативную версию программы с измененными именами переменных и классов">
+        <copy todir="${alt.dir}">
+            <fileset dir="${src.dir}"/>
+        </copy>
+        <replaceregexp flags="g">
+            <regexp pattern="org\.example\.weblab3\.MainBean"/>
+            <substitution expression="org.example.weblab3.AltMainBean"/>
+            <fileset dir="${alt.dir}" includes="**/*.java"/>
+        </replaceregexp>
+        <replaceregexp flags="g">
+            <regexp pattern="org\.example\.weblab3\.ClockBean"/>
+            <substitution expression="org.example.weblab3.AltClockBean"/>
+            <fileset dir="${alt.dir}" includes="**/*.java"/>
+        </replaceregexp>
+        <replaceregexp flags="g">
+            <regexp pattern="org\.example\.weblab3\.PointResult"/>
+            <substitution expression="org.example.weblab3.AltPointResult"/>
+            <fileset dir="${alt.dir}" includes="**/*.java"/>
+        </replaceregexp>
+        <replaceregexp flags="g">
+            <regexp pattern="org\.example\.weblab3\.PointResultDAO"/>
+            <substitution expression="org.example.weblab3.AltPointResultDAO"/>
+            <fileset dir="${alt.dir}" includes="**/*.java"/>
+        </replaceregexp>
+        <replaceregexp flags="g">
+            <regexp pattern="org\.example\.weblab3\.ResultManager"/>
+            <substitution expression="org.example.weblab3.AltResultManager"/>
+            <fileset dir="${alt.dir}" includes="**/*.java"/>
+        </replaceregexp>
+        <replaceregexp flags="g">
+            <regexp pattern="\bx\b"/>
+            <substitution expression="altX"/>
+            <fileset dir="${alt.dir}" includes="**/*.java"/>
+        </replaceregexp>
+        <replaceregexp flags="g">
+            <regexp pattern="\by\b"/>
+            <substitution expression="altY"/>
+            <fileset dir="${alt.dir}" includes="**/*.java"/>
+        </replaceregexp>
+        <replaceregexp flags="g">
+            <regexp pattern="\br\b"/>
+            <substitution expression="altR"/>
+            <fileset dir="${alt.dir}" includes="**/*.java"/>
+        </replaceregexp>
+        <replaceregexp flags="g">
+            <regexp pattern="\bresult\b"/>
+            <substitution expression="altResult"/>
+            <fileset dir="${alt.dir}" includes="**/*.java"/>
+        </replaceregexp>
+        <replaceregexp flags="g">
+            <regexp pattern="\bpoint\b"/>
+            <substitution expression="altPoint"/>
+            <fileset dir="${alt.dir}" includes="**/*.java"/>
+        </replaceregexp>
+        <replaceregexp flags="g">
+            <regexp pattern="\bclock\b"/>
+            <substitution expression="altClock"/>
+            <fileset dir="${alt.dir}" includes="**/*.java"/>
+        </replaceregexp>
+        <replaceregexp flags="g">
+            <regexp pattern="\bmanager\b"/>
+            <substitution expression="altManager"/>
+            <fileset dir="${alt.dir}" includes="**/*.java"/>
+        </replaceregexp>
+        <antcall target="build">
+            <param name="src.dir" value="${alt.dir}"/>
+            <param name="jar.name" value="${alt.jar.name}"/>
+        </antcall>
+    </target>
+
+    <!-- Проверка изменений кода -->
+    <target name="diff" description="Осуществляет проверку состояния рабочей копии">
+        <svn>
+            <status path="${basedir}" revisionProperty="svn.revision"/>
+            <diff outputFile="${report.dir}/current-diff.txt"/>
+        </svn>
+        <echo message="Текущая ревизия: ${svn.revision}"/>
+        <condition property="changes.exist">
+            <length file="${report.dir}/current-diff.txt" when="greater" length="0"/>
+        </condition>
+        <antcall target="commit-changes"/>
+    </target>
+
+    <target name="commit-changes" if="changes.exist">
+        <input message="Введите комментарий для коммита:" addproperty="commit.message"/>
+        <svn>
+            <commit message="${commit.message}"/>
+        </svn>
+    </target>
+
+    <!-- Сборка и запуск в альтернативном окружении -->
+    <target name="env" description="Осуществляет сборку и запуск программы в альтернативных окружениях">
+        <java classname="${main.class}" fork="true">
+            <classpath>
+                <path refid="classpath"/>
+                <pathelement location="${dist.dir}/${jar.name}"/>
+            </classpath>
+            <jvmarg value="-Djava.version=${java.version}"/>
+            <jvmarg value="-Duser.language=${user.language}"/>
+        </java>
+    </target>
+
+    <!-- Получение из git-репозитория и упаковка в zip-архив -->
+    <target name="team" description="Осуществляет получение из git-репозитория 4 предыдущих ревизий и их упаковку">
+        <mkdir dir="${git.dir}"/>
+        <exec executable="git" dir="${git.dir}">
+            <arg value="clone"/>
+            <arg value="${git.repo}"/>
+            <arg value="."/>
+        </exec>
+        <exec executable="git" dir="${git.dir}">
+            <arg value="log"/>
+            <arg value="-n"/>
+            <arg value="4"/>
+            <arg value="--format=%H"/>
+            <arg value="--reverse"/>
+            <arg value="HEAD~4..HEAD"/>
+            <redirector output="${git.dir}/revisions.txt"/>
+        </exec>
+        <loadfile property="git.revisions" srcFile="${git.dir}/revisions.txt"/>
+        <for list="${git.revisions}" param="revision" delimiter="${line.separator}">
+            <sequential>
+                <mkdir dir="${git.dir}/rev-@{revision}"/>
+                <exec executable="git" dir="${git.dir}">
+                    <arg value="checkout"/>
+                    <arg value="@{revision}"/>
+                </exec>
+                <copy todir="${git.dir}/rev-@{revision}">
+                    <fileset dir="${git.dir}" excludes=".git/**, revisions.txt, rev-*/**"/>
+                </copy>
+            </sequential>
+        </for>
+        <zip destfile="${dist.dir}/${zip.name}" basedir="${git.dir}" excludes=".git/**, revisions.txt"/>
+    </target>
+</project> 

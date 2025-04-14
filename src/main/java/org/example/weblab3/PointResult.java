@@ -74,7 +74,26 @@ public class PointResult {
         this.id = id;
     }
 
-
+    /**
+     * Проверяет, попадает ли точка в заданную область
+     * @return true, если точка попадает в область, false - в противном случае
+     */
+    public boolean checkHit() {
+        if (x == null || y == null || r == null) {
+            return false;
+        }
+        
+        // Проверка попадания в прямоугольник во втором квадранте (x ≤ 0, y ≥ 0)
+        boolean inRectangle = x <= 0 && y >= 0 && Math.abs(x) <= r / 2 && y <= r;
+        
+        // Проверка попадания в треугольник в третьем квадранте (x ≤ 0, y ≤ 0)
+        boolean inTriangle = x <= 0 && y <= 0 && y >= -x - r;
+        
+        // Проверка попадания в четверть круга в первом квадранте (x ≥ 0, y ≥ 0)
+        boolean inCircle = x >= 0 && y >= 0 && x*x + y*y <= r*r;
+        
+        return inRectangle || inTriangle || inCircle;
+    }
 
     // Геттеры и сеттеры
 }

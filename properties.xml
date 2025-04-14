@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
+<properties>
+    <!-- Общие параметры проекта -->
+    <entry key="version">1.0.0</entry>
+    <entry key="main.class">org.example.weblab3.MainBean</entry>
+    <entry key="organization">Пример Организации</entry>
+    <entry key="year">2024</entry>
+    
+    <!-- Пути к директориям -->
+    <entry key="src.dir">src/main/java</entry>
+    <entry key="webapp.dir">src/main/webapp</entry>
+    <entry key="test.dir">src/test/java</entry>
+    <entry key="lib.dir">lib</entry>
+    <entry key="build.dir">build</entry>
+    <entry key="classes.dir">${build.dir}/classes</entry>
+    <entry key="dist.dir">dist</entry>
+    <entry key="doc.dir">${build.dir}/docs</entry>
+    <entry key="report.dir">${build.dir}/reports</entry>
+    <entry key="i18n.dir">src/main/resources/i18n</entry>
+    <entry key="native.dir">${build.dir}/i18n</entry>
+    <entry key="alt.dir">${build.dir}/alt</entry>
+    <entry key="svn.dir">${build.dir}/svn</entry>
+    <entry key="git.dir">${build.dir}/git</entry>
+    
+    <!-- Параметры архивов -->
+    <entry key="jar.name">WebLab3.jar</entry>
+    <entry key="alt.jar.name">WebLab3-alt.jar</entry>
+    <entry key="zip.name">WebLab3-team.zip</entry>
+    
+    <!-- Параметры для MD5 и SHA-1 -->
+    <entry key="md5">MD5 хеш будет сгенерирован автоматически</entry>
+    <entry key="sha1">SHA-1 хеш будет сгенерирован автоматически</entry>
+    
+    <!-- Параметры SCP -->
+    <entry key="scp.host">localhost</entry>
+    <entry key="scp.user">user</entry>
+    <entry key="scp.password">password</entry>
+    <entry key="scp.dir">/path/to/deploy</entry>
+    
+    <!-- Параметры звуковых файлов -->
+    <entry key="success.sound">resources/sounds/success.wav</entry>
+    <entry key="fail.sound">resources/sounds/fail.wav</entry>
+    
+    <!-- Параметры для альтернативной версии -->
+    <entry key="replace.file">resources/replace.properties</entry>
+    
+    <!-- Параметры Git -->
+    <entry key="git.repo">https://github.com/example/weblab3.git</entry>
+    
+    <!-- Параметры окружения -->
+    <entry key="java.version">11</entry>
+    <entry key="user.language">ru</entry>
+</properties> 
