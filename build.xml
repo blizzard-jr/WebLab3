@@ -147,12 +147,11 @@
         </exec>
     </target>
 
-    <!-- История версий -->
-    <target name="history" description="Если проект не удаётся скомпилировать, загружается предыдущая версия из репозитория svn">
+    <target name="history" description="Если проект не удаётся скомпилировать, загружается предыдущая версия из репозитория SVN">
         <property name="history.success" value="false"/>
         <property name="history.attempts" value="0"/>
         <property name="max.attempts" value="5"/>
-        
+
         <trycatch property="compile.error" reference="stack.trace">
             <try>
                 <antcall target="compile"/>
@@ -160,7 +159,16 @@
             </try>
             <catch>
                 <echo message="Компиляция не удалась. Пытаемся загрузить предыдущую версию..."/>
-                
+
+                <!-- Получаем текущую ревизию -->
+                <exec executable="svn" outputproperty="current.revision">
+                    <arg value="info"/>
+                </exec>
+                <!-- Извлекаем номер ревизии из вывода -->
+                <propertyregex property="current.revision.number" input="${current.revision}" regexp="Revision: ([0-9]+)" select="\1"/>
+
+                <echo message="Текущая ревизия: ${current.revision.number}"/>
+
                 <for param="attempt" list="1,2,3,4,5" delimiter=",">
                     <sequential>
                         <if>
@@ -169,29 +177,33 @@
                                 <not><equals arg1="${history.attempts}" arg2="${max.attempts}"/></not>
                             </and>
                             <then>
-                                <echo message="Попытка @{attempt}: Откат на предыдущую версию"/>
+                                <echo message="Попытка @{attempt}: Откат на предыдущую ревизию"/>
                                 <math result="history.attempts" operand1="${history.attempts}" operation="+" operand2="1" datatype="int"/>
 
-                                <!-- Используем Git вместо SVN, так как у нас Git-репозиторий -->
-                                <exec executable="git" outputproperty="current.revision">
-                                    <arg value="rev-parse"/>
-                                    <arg value="HEAD"/>
+                                <!-- Откат на предыдущую ревизию -->
+                                <exec executable="svn">
+                                    <arg value="update"/>
+                                    <arg value="-r"/>
+                                    <arg value="PREV"/>
                                 </exec>
-                                
-                                <echo message="Текущая ревизия: ${current.revision}"/>
-                                <exec executable="git">
-                                    <arg value="checkout"/>
-                                    <arg value="HEAD~1"/>
+
+                                <!-- Получаем текущую ревизию после отката -->
+                                <exec executable="svn" outputproperty="previous.revision">
+                                    <arg value="info"/>
                                 </exec>
-                                
+                                <propertyregex property="previous.revision.number" input="${previous.revision}" regexp="Revision: ([0-9]+)" select="\1"/>
+
                                 <trycatch>
                                     <try>
                                         <antcall target="compile"/>
                                         <property name="history.success" value="true"/>
-                                        <echo message="Компиляция успешна с предыдущей версией"/>
-                                        <exec executable="git" output="${report.dir}/diff.txt">
+                                        <echo message="Компиляция успешна с предыдущей версией (${previous.revision.number})"/>
+
+                                        <!-- Сохраняем разницу между версиями -->
+                                        <exec executable="svn" output="${report.dir}/diff.txt">
                                             <arg value="diff"/>
-                                            <arg value="${current.revision}"/>
+                                            <arg value="-r"/>
+                                            <arg value="${previous.revision.number}:${current.revision.number}"/>
                                         </exec>
                                     </try>
                                     <catch>
@@ -202,17 +214,18 @@
                         </if>
                     </sequential>
                 </for>
-                
+
                 <if>
                     <equals arg1="${history.success}" arg2="true"/>
                     <then>
-                        <echo message="Найдена рабочая версия. Результат операции diff сохранен в ${report.dir}/diff.txt"/>
+                        <echo message="Найдена рабочая версия. Diff сохранён в ${report.dir}/diff.txt"/>
                     </then>
                     <else>
                         <echo message="Не удалось найти рабочую версию после ${max.attempts} попыток"/>
-                        <exec executable="git">
-                            <arg value="checkout"/>
-                            <arg value="main"/>
+                        <exec executable="svn">
+                            <arg value="update"/>
+                            <arg value="-r"/>
+                            <arg value="${current.revision.number}"/>
                         </exec>
                     </else>
                 </if>
