@@ -304,40 +304,43 @@
         </antcall>
     </target>
 
-    <!-- Проверка изменений кода -->
     <target name="diff" description="Осуществляет проверку состояния рабочей копии">
+        <!-- Создаем директорию для отчётов, если её нет -->
+        <mkdir dir="${report.dir}"/>
+
         <!-- Получаем статус изменений -->
         <exec executable="git" outputproperty="git.status">
             <arg value="status"/>
             <arg value="--porcelain"/>
         </exec>
-        
+
         <!-- Получаем текущую ревизию -->
         <exec executable="git" outputproperty="git.revision">
             <arg value="rev-parse"/>
             <arg value="HEAD"/>
         </exec>
-        
+
         <echo message="Текущая ревизия: ${git.revision}"/>
-        
+
         <!-- Создаем diff-файл -->
         <exec executable="git" output="${report.dir}/current-diff.txt">
             <arg value="diff"/>
         </exec>
-        
+
         <!-- Проверяем, есть ли изменения -->
         <condition property="changes.exist">
             <not>
                 <equals arg1="${git.status}" arg2=""/>
             </not>
         </condition>
-        
+
         <echo message="Статус изменений: ${git.status}"/>
-        
+
         <!-- Если есть изменения, предлагаем сделать коммит -->
         <antcall target="commit-changes"/>
     </target>
-    
+
+
     <!-- Вспомогательная цель для коммита изменений -->
     <target name="commit-changes" if="changes.exist">
         <input message="Введите комментарий для коммита:" addproperty="commit.message"/>
