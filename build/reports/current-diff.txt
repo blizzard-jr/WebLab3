@@ -1,0 +1,459 @@
+diff --git a/build.xml b/build.xml
+index 5f7ea42..d79c7ac 100644
+--- a/build.xml
++++ b/build.xml
+@@ -7,6 +7,9 @@
+     <path id="classpath">
+         <fileset dir="${lib.dir}" includes="**/*.jar"/>
+     </path>
++    
++    <!-- Подключение библиотеки ant-contrib для for цикла -->
++    <taskdef resource="net/sf/antcontrib/antlib.xml" classpath="${lib.dir}/ant-contrib-1.0b3.jar"/>
+ 
+     <!-- Подготовка директорий -->
+     <target name="init">
+@@ -71,7 +74,7 @@
+     </target>
+ 
+     <!-- Генерация JavaDoc -->
+-    <target name="doc" description="Добавление в MANIFEST.MF MD5 и SHA-1 файлов проекта, а также генерация и добавление в архив javadoc">
++    <target name="doc" depends="build" description="Добавление в MANIFEST.MF MD5 и SHA-1 файлов проекта, а также генерация и добавление в архив javadoc">
+         <javadoc sourcepath="${src.dir}" destdir="${doc.dir}" 
+                  author="true" version="true" use="true" 
+                  windowtitle="${ant.project.name} API">
+@@ -79,11 +82,18 @@
+             <bottom><![CDATA[<i>Copyright &#169; ${year} ${organization}. All Rights Reserved.</i>]]></bottom>
+             <classpath refid="classpath"/>
+         </javadoc>
++        
++        <!-- Вычисление MD5 и SHA-1 хешей -->
++        <checksum file="${dist.dir}/${war.name}" algorithm="MD5" property="md5.actual"/>
++        <checksum file="${dist.dir}/${war.name}" algorithm="SHA-1" property="sha1.actual"/>
++        <echo message="MD5: ${md5.actual}"/>
++        <echo message="SHA-1: ${sha1.actual}"/>
++        
+         <war destfile="${dist.dir}/${war.name}" update="true">
+-            <webinf dir="${doc.dir}" prefix="WEB-INF/docs"/>
++            <zipfileset dir="${doc.dir}" prefix="WEB-INF/docs"/>
+             <manifest>
+-                <attribute name="MD5-Digest" value="${md5}"/>
+-                <attribute name="SHA1-Digest" value="${sha1}"/>
++                <attribute name="MD5-Digest" value="${md5.actual}"/>
++                <attribute name="SHA1-Digest" value="${sha1.actual}"/>
+             </manifest>
+         </war>
+     </target>
+@@ -113,33 +123,103 @@
+ 
+     <!-- Создание отчета о прохождении тестов -->
+     <target name="report" depends="test" description="В случае успешного прохождения тестов сохраняет отчет junit в формате xml">
+-        <mkdir dir="${svn.dir}"/>
+-        <exec executable="svn" outputproperty="svn.revision">
+-            <arg value="info"/>
+-            <arg value="--revision"/>
++        <mkdir dir="${report.dir}/git"/>
++        
++        <!-- Получаем текущую ревизию Git -->
++        <exec executable="git" outputproperty="git.revision">
++            <arg value="rev-parse"/>
+             <arg value="HEAD"/>
+         </exec>
+-        <echo file="${report.dir}/svn-revision.txt">${svn.revision}</echo>
+-        <svn>
+-            <commit file="${report.dir}" message="Committing test report for revision ${svn.revision}"/>
+-        </svn>
++        
++        <!-- Сохраняем информацию о ревизии -->
++        <echo file="${report.dir}/git-revision.txt">${git.revision}</echo>
++        
++        <echo message="Текущая ревизия Git: ${git.revision}"/>
++        <echo message="Отчет о тестировании сохранен в: ${report.dir}"/>
++        
++        <!-- Добавляем отчеты в Git -->
++        <exec executable="git">
++            <arg value="add"/>
++            <arg value="${report.dir}"/>
++        </exec>
++        
++        <!-- Создаем коммит с отчетами -->
++        <exec executable="git">
++            <arg value="commit"/>
++            <arg value="-m"/>
++            <arg value="Test report for revision ${git.revision}"/>
++        </exec>
+     </target>
+ 
+     <!-- История версий -->
+     <target name="history" description="Если проект не удаётся скомпилировать, загружается предыдущая версия из репозитория svn">
+-        <trycatch>
++        <property name="history.success" value="false"/>
++        <property name="history.attempts" value="0"/>
++        <property name="max.attempts" value="5"/>
++        
++        <trycatch property="compile.error" reference="stack.trace">
+             <try>
+                 <antcall target="compile"/>
++                <property name="history.success" value="true"/>
+             </try>
+             <catch>
+-                <echo message="Компиляция не удалась, загружаем предыдущую версию"/>
+-                <svn>
+-                    <update dir="${basedir}" revision="PREV"/>
+-                </svn>
+-                <antcall target="compile"/>
+-                <svn>
+-                    <diff outputFile="${report.dir}/diff.txt"/>
+-                </svn>
++                <echo message="Компиляция не удалась. Пытаемся загрузить предыдущую версию..."/>
++                
++                <for param="attempt" list="1,2,3,4,5" delimiter=",">
++                    <sequential>
++                        <if>
++                            <and>
++                                <not><equals arg1="${history.success}" arg2="true"/></not>
++                                <not><equals arg1="${history.attempts}" arg2="${max.attempts}"/></not>
++                            </and>
++                            <then>
++                                <echo message="Попытка @{attempt}: Откат на предыдущую версию"/>
++                                <math result="history.attempts" operand1="${history.attempts}" operation="+" operand2="1" datatype="int"/>
++
++                                <!-- Используем Git вместо SVN, так как у нас Git-репозиторий -->
++                                <exec executable="git" outputproperty="current.revision">
++                                    <arg value="rev-parse"/>
++                                    <arg value="HEAD"/>
++                                </exec>
++                                
++                                <echo message="Текущая ревизия: ${current.revision}"/>
++                                <exec executable="git">
++                                    <arg value="checkout"/>
++                                    <arg value="HEAD~1"/>
++                                </exec>
++                                
++                                <trycatch>
++                                    <try>
++                                        <antcall target="compile"/>
++                                        <property name="history.success" value="true"/>
++                                        <echo message="Компиляция успешна с предыдущей версией"/>
++                                        <exec executable="git" output="${report.dir}/diff.txt">
++                                            <arg value="diff"/>
++                                            <arg value="${current.revision}"/>
++                                        </exec>
++                                    </try>
++                                    <catch>
++                                        <echo message="Компиляция не удалась и с предыдущей версией"/>
++                                    </catch>
++                                </trycatch>
++                            </then>
++                        </if>
++                    </sequential>
++                </for>
++                
++                <if>
++                    <equals arg1="${history.success}" arg2="true"/>
++                    <then>
++                        <echo message="Найдена рабочая версия. Результат операции diff сохранен в ${report.dir}/diff.txt"/>
++                    </then>
++                    <else>
++                        <echo message="Не удалось найти рабочую версию после ${max.attempts} попыток"/>
++                        <exec executable="git">
++                            <arg value="checkout"/>
++                            <arg value="main"/>
++                        </exec>
++                    </else>
++                </if>
+             </catch>
+         </trycatch>
+     </target>
+@@ -217,66 +297,165 @@
+ 
+     <!-- Проверка изменений кода -->
+     <target name="diff" description="Осуществляет проверку состояния рабочей копии">
+-        <svn>
+-            <status path="${basedir}" revisionProperty="svn.revision"/>
+-            <diff outputFile="${report.dir}/current-diff.txt"/>
+-        </svn>
+-        <echo message="Текущая ревизия: ${svn.revision}"/>
++        <!-- Получаем статус изменений -->
++        <exec executable="git" outputproperty="git.status">
++            <arg value="status"/>
++            <arg value="--porcelain"/>
++        </exec>
++        
++        <!-- Получаем текущую ревизию -->
++        <exec executable="git" outputproperty="git.revision">
++            <arg value="rev-parse"/>
++            <arg value="HEAD"/>
++        </exec>
++        
++        <echo message="Текущая ревизия: ${git.revision}"/>
++        
++        <!-- Создаем diff-файл -->
++        <exec executable="git" output="${report.dir}/current-diff.txt">
++            <arg value="diff"/>
++        </exec>
++        
++        <!-- Проверяем, есть ли изменения -->
+         <condition property="changes.exist">
+-            <length file="${report.dir}/current-diff.txt" when="greater" length="0"/>
++            <not>
++                <equals arg1="${git.status}" arg2=""/>
++            </not>
+         </condition>
++        
++        <echo message="Статус изменений: ${git.status}"/>
++        
++        <!-- Если есть изменения, предлагаем сделать коммит -->
+         <antcall target="commit-changes"/>
+     </target>
+-
++    
++    <!-- Вспомогательная цель для коммита изменений -->
+     <target name="commit-changes" if="changes.exist">
+         <input message="Введите комментарий для коммита:" addproperty="commit.message"/>
+-        <svn>
+-            <commit message="${commit.message}"/>
+-        </svn>
++        <exec executable="git">
++            <arg value="add"/>
++            <arg value="."/>
++        </exec>
++        <exec executable="git">
++            <arg value="commit"/>
++            <arg value="-m"/>
++            <arg value="${commit.message}"/>
++        </exec>
++        <echo message="Изменения успешно закоммичены."/>
+     </target>
+ 
++    <!-- Локальный запуск WAR-архива через встроенный Tomcat -->
++    <target name="run-local" depends="build" description="Запускает WAR-архив на встроенном Tomcat сервере">
++        <echo message="Запуск локального Tomcat сервера..."/>
++        <echo message="Для завершения нажмите Ctrl+C"/>
++        
++        <java classname="org.apache.catalina.startup.Bootstrap" fork="true">
++            <classpath>
++                <fileset dir="${lib.dir}/tomcat" includes="*.jar"/>
++            </classpath>
++            <jvmarg value="-Djava.version=${java.version}"/>
++            <jvmarg value="-Duser.language=${user.language}"/>
++            <jvmarg value="-Dcatalina.base=${basedir}/temp"/>
++            <jvmarg value="-Dcatalina.home=${basedir}/temp"/>
++            <arg value="start"/>
++            <sysproperty key="catalina.base" value="${basedir}/temp"/>
++            <sysproperty key="catalina.home" value="${basedir}/temp"/>
++            <sysproperty key="war.path" value="${dist.dir}/${war.name}"/>
++        </java>
++        
++        <!-- Создаем папку для данных Tomcat -->
++        <mkdir dir="${basedir}/temp/webapps"/>
++        <copy file="${dist.dir}/${war.name}" todir="${basedir}/temp/webapps"/>
++        
++        <echo message="Приложение будет доступно по адресу: http://localhost:8080/WebLab3"/>
++    </target>
++    
+     <!-- Сборка и запуск в альтернативном окружении -->
+-    <target name="env" description="Осуществляет сборку и запуск программы в альтернативных окружениях">
+-        <!-- Для WAR-архива используем развертывание на сервер приложений -->
+-        <echo message="Для запуска WAR архива в альтернативном окружении необходимо:"/>
+-        <echo message="1. Сделать сборку: ant build"/>
+-        <echo message="2. Развернуть WAR-архив на сервере приложений: ant scp"/>
+-        <echo message="3. Открыть в браузере http://${scp.host}:8080/WebLab3/"/>
++    <target name="env" depends="build" description="Осуществляет сборку и запуск программы в альтернативных окружениях">
++        <echo message="Выберите окружение для запуска:"/>
++        <echo message="1. Локальный Tomcat (ant run-local)"/>
++        <echo message="2. Удаленный сервер (ant scp)"/>
++        
++        <input message="Введите номер (1 или 2):" validargs="1,2" addproperty="env.choice"/>
++        
++        <condition property="run.local">
++            <equals arg1="${env.choice}" arg2="1"/>
++        </condition>
++        
++        <condition property="run.remote">
++            <equals arg1="${env.choice}" arg2="2"/>
++        </condition>
++        
++        <antcall target="do-run-local"/>
++        <antcall target="do-run-remote"/>
++    </target>
++    
++    <target name="do-run-local" if="run.local">
++        <antcall target="run-local"/>
++    </target>
++    
++    <target name="do-run-remote" if="run.remote">
++        <antcall target="scp"/>
++        <echo message="Приложение успешно отправлено на сервер ${scp.host}"/>
++        <echo message="Доступно по адресу: http://${scp.host}:8080/WebLab3/"/>
+     </target>
+ 
+     <!-- Получение из git-репозитория и упаковка в zip-архив -->
+     <target name="team" description="Осуществляет получение из git-репозитория 4 предыдущих ревизий и их упаковку">
+         <mkdir dir="${git.dir}"/>
+-        <exec executable="git" dir="${git.dir}">
+-            <arg value="clone"/>
+-            <arg value="${git.repo}"/>
+-            <arg value="."/>
+-        </exec>
+-        <exec executable="git" dir="${git.dir}">
++        
++        <!-- Копируем текущий .git каталог во временную директорию -->
++        <copy todir="${git.dir}/.git">
++            <fileset dir=".git"/>
++        </copy>
++        
++        <!-- Получаем список последних 4 ревизий -->
++        <exec executable="git" outputproperty="git.revisions" dir="${basedir}">
+             <arg value="log"/>
+             <arg value="-n"/>
+             <arg value="4"/>
+             <arg value="--format=%H"/>
+-            <arg value="--reverse"/>
+-            <arg value="HEAD~4..HEAD"/>
+-            <redirector output="${git.dir}/revisions.txt"/>
+         </exec>
+-        <loadfile property="git.revisions" srcFile="${git.dir}/revisions.txt"/>
++        
++        <echo message="Найдены ревизии: ${git.revisions}"/>
++        <echo file="${git.dir}/revisions.txt">${git.revisions}</echo>
++        
++        <!-- Для каждой ревизии создаем отдельную директорию -->
+         <for list="${git.revisions}" param="revision" delimiter="${line.separator}">
+             <sequential>
++                <echo message="Обрабатываем ревизию: @{revision}"/>
++                
+                 <mkdir dir="${git.dir}/rev-@{revision}"/>
+-                <exec executable="git" dir="${git.dir}">
++                
++                <!-- Клонируем основной репозиторий -->
++                <exec executable="git" dir="${git.dir}/rev-@{revision}">
++                    <arg value="init"/>
++                </exec>
++                
++                <copy todir="${git.dir}/rev-@{revision}/.git">
++                    <fileset dir="${git.dir}/.git"/>
++                </copy>
++                
++                <!-- Переключаемся на нужную ревизию -->
++                <exec executable="git" dir="${git.dir}/rev-@{revision}">
+                     <arg value="checkout"/>
+                     <arg value="@{revision}"/>
++                    <arg value="--force"/>
+                 </exec>
+-                <copy todir="${git.dir}/rev-@{revision}">
+-                    <fileset dir="${git.dir}" excludes=".git/**, revisions.txt, rev-*/**"/>
+-                </copy>
+-                <ant dir="${git.dir}/rev-@{revision}" target="build" inheritAll="false"/>
++                
++                <!-- Собираем WAR-архив для этой ревизии -->
++                <ant dir="${git.dir}/rev-@{revision}" target="build" inheritAll="false">
++                    <property name="dist.dir" value="${git.dir}/rev-@{revision}/dist"/>
++                </ant>
+             </sequential>
+         </for>
++        
++        <!-- Упаковываем все WAR-файлы в один ZIP-архив -->
++        <mkdir dir="${dist.dir}"/>
+         <zip destfile="${dist.dir}/${zip.name}">
+-            <fileset dir="${git.dir}" includes="rev-*/**/*.war" excludes=".git/**"/>
++            <fileset dir="${git.dir}" includes="**/dist/*.war"/>
+         </zip>
++        
++        <echo message="Создан архив ${zip.name} с WAR-файлами из 4 последних ревизий"/>
+     </target>
+ </project> 
+\ No newline at end of file
+diff --git a/lib/svn/svnant-1.3.1.jar b/lib/svn/svnant-1.3.1.jar
+deleted file mode 100644
+index 178a980..0000000
+--- a/lib/svn/svnant-1.3.1.jar
++++ /dev/null
+@@ -1,16 +0,0 @@
+-<html>
+-<head><title>404 Not Found</title></head>
+-<body bgcolor="white">
+-<center><h1>404 Not Found</h1></center>
+-<hr><center>nginx</center>
+-</body>
+-</html>
+-<!-- a padding to disable MSIE and Chrome friendly error page -->
+-<!-- a padding to disable MSIE and Chrome friendly error page -->
+-<!-- a padding to disable MSIE and Chrome friendly error page -->
+-<!-- a padding to disable MSIE and Chrome friendly error page -->
+-<!-- a padding to disable MSIE and Chrome friendly error page -->
+-<!-- a padding to disable MSIE and Chrome friendly error page -->
+-
+-
+-
+diff --git a/lib/svn/svnant-1.3.2.jar b/lib/svn/svnant-1.3.2.jar
+deleted file mode 100644
+index 178a980..0000000
+--- a/lib/svn/svnant-1.3.2.jar
++++ /dev/null
+@@ -1,16 +0,0 @@
+-<html>
+-<head><title>404 Not Found</title></head>
+-<body bgcolor="white">
+-<center><h1>404 Not Found</h1></center>
+-<hr><center>nginx</center>
+-</body>
+-</html>
+-<!-- a padding to disable MSIE and Chrome friendly error page -->
+-<!-- a padding to disable MSIE and Chrome friendly error page -->
+-<!-- a padding to disable MSIE and Chrome friendly error page -->
+-<!-- a padding to disable MSIE and Chrome friendly error page -->
+-<!-- a padding to disable MSIE and Chrome friendly error page -->
+-<!-- a padding to disable MSIE and Chrome friendly error page -->
+-
+-
+-
+diff --git a/lib/svn/svnclientadapter-1.3.3.jar b/lib/svn/svnclientadapter-1.3.3.jar
+deleted file mode 100644
+index 178a980..0000000
+--- a/lib/svn/svnclientadapter-1.3.3.jar
++++ /dev/null
+@@ -1,16 +0,0 @@
+-<html>
+-<head><title>404 Not Found</title></head>
+-<body bgcolor="white">
+-<center><h1>404 Not Found</h1></center>
+-<hr><center>nginx</center>
+-</body>
+-</html>
+-<!-- a padding to disable MSIE and Chrome friendly error page -->
+-<!-- a padding to disable MSIE and Chrome friendly error page -->
+-<!-- a padding to disable MSIE and Chrome friendly error page -->
+-<!-- a padding to disable MSIE and Chrome friendly error page -->
+-<!-- a padding to disable MSIE and Chrome friendly error page -->
+-<!-- a padding to disable MSIE and Chrome friendly error page -->
+-
+-
+-
+diff --git a/lib/svn/svnkit-1.10.3.jar b/lib/svn/svnkit-1.10.3.jar
+deleted file mode 100644
+index 63f2e56..0000000
+Binary files a/lib/svn/svnkit-1.10.3.jar and /dev/null differ
+diff --git a/lib/svn/svnkit-cli-1.10.3.jar b/lib/svn/svnkit-cli-1.10.3.jar
+deleted file mode 100644
+index 92898e7..0000000
+Binary files a/lib/svn/svnkit-cli-1.10.3.jar and /dev/null differ
+diff --git a/src/main/java/org/example/weblab3/ClockBean.java b/src/main/java/org/example/weblab3/ClockBean.java
+index c6803fa..7d229b3 100644
+--- a/src/main/java/org/example/weblab3/ClockBean.java
++++ b/src/main/java/org/example/weblab3/ClockBean.java
+@@ -1,7 +1,5 @@
+ package org.example.weblab3;
+ 
+-
+-
+ import jakarta.faces.bean.ManagedBean;
+ import jakarta.faces.bean.ViewScoped;
+ 
+@@ -13,6 +11,6 @@ import java.util.Date;
+ @ViewScoped
+ public class ClockBean implements Serializable {
+     public String getCurrentTime() {
+-        return new SimpleDateFormat("HH:mm:ss dd.MM.yyyy").format(new Date())
++        return new SimpleDateFormat("HH:mm:ss dd.MM.yyyy").format(new Date());
+     }
+ }
