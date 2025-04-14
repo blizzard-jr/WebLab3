@@ -49,12 +49,11 @@ public class MainBean implements Serializable {
 
         result.setExecutionTime(System.nanoTime() - startTime);
 
-        // Сохраняем результат
         resultManager.addResult(result);
 
         logger.info("Проверка завершена. Результат: " + hits + ", Время выполнения: " + result.getExecutionTime() + " нс");
 
-        return null; // Остаемся на той же странице
+        return null;
     }
 
 
