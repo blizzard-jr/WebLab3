@@ -40,7 +40,6 @@
     
     <!-- Параметры звуковых файлов -->
     <entry key="success.sound">resources/sounds/success.wav</entry>
-    <entry key="fail.sound">resources/sounds/fail.wav</entry>
     
     <!-- Параметры для альтернативной версии -->
     <entry key="replace.file">resources/replace.properties</entry>
