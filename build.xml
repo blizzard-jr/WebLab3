@@ -1,24 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project name="WebLab3" default="build" basedir="." xmlns:ivy="antlib:org.apache.ivy.ant">
-    <!-- Подключение файла с параметрами -->
     <property file="properties.xml"/>
-
-    <!-- Определение путей к директориям -->
     <path id="classpath">
         <fileset dir="${lib.dir}" includes="**/*.jar"/>
     </path>
-    
-    <!-- Подключение библиотеки ant-contrib для for цикла -->
     <taskdef resource="net/sf/antcontrib/antlib.xml" classpath="${lib.dir}/ant-contrib-1.0b3.jar"/>
 
-    <!-- Подготовка директорий -->
     <target name="init">
         <mkdir dir="${build.dir}"/>
         <mkdir dir="${dist.dir}"/>
         <mkdir dir="${report.dir}"/>
     </target>
 
-    <!-- Компиляция исходных кодов проекта -->
     <target name="compile" depends="init" description="Компиляция исходных кодов проекта">
         <mkdir dir="${classes.dir}"/>
         <javac srcdir="${src.dir}" destdir="${classes.dir}" includeantruntime="false">
@@ -26,11 +19,11 @@
         </javac>
     </target>
 
-    <!-- Компиляция и упаковка в исполняемый war-архив -->
     <target name="build" depends="compile" description="Компиляция исходных кодов проекта и их упаковка в исполняемый war-архив">
         <war destfile="${dist.dir}/${war.name}" webxml="${webapp.dir}/WEB-INF/web.xml">
             <classes dir="${classes.dir}"/>
             <fileset dir="${webapp.dir}" excludes="WEB-INF/web.xml"/>
+            <lib dir="lib"/>
             <manifest>
                 <attribute name="Implementation-Title" value="WebLab3"/>
                 <attribute name="Implementation-Version" value="${version}"/>
@@ -39,13 +32,11 @@
         </war>
     </target>
 
-    <!-- Удаление скомпилированных классов и временных файлов -->
     <target name="clean" description="Удаление скомпилированных классов проекта и всех временных файлов">
         <delete dir="${build.dir}"/>
         <delete dir="${report.dir}"/>
     </target>
 
-    <!-- Запуск JUnit-тестов -->
     <target name="test" depends="build" description="Запуск junit-тестов проекта">
         <mkdir dir="${report.dir}"/>
         <junit printsummary="yes" haltonfailure="no" fork="true">
@@ -64,7 +55,6 @@
         </junitreport>
     </target>
 
-    <!-- Валидация XML-файлов -->
     <target name="xml" description="Валидация всех xml-файлов в проекте">
         <xmlvalidate lenient="yes">
             <fileset dir="${src.dir}" includes="**/*.xml"/>
@@ -72,39 +62,27 @@
         </xmlvalidate>
     </target>
 
-    <!-- Генерация JavaDoc -->
     <target name="doc" depends="build" description="Добавление в MANIFEST.MF MD5 и SHA-1 файлов проекта, а также генерация и добавление в архив javadoc">
         <javadoc sourcepath="${src.dir}" destdir="${doc.dir}" 
                  author="true" version="true" use="true" 
                  windowtitle="${ant.project.name} API">
             <doctitle><![CDATA[<h1>${ant.project.name}</h1>]]></doctitle>
-            <bottom><![CDATA[<i>Copyright &#169; ${year} ${organization}. All Rights Reserved.</i>]]></bottom>
+            <bottom><![CDATA[<i>Copyright &#169. All Rights Reserved.</i>]]></bottom>
             <classpath refid="classpath"/>
         </javadoc>
-        
-        <!-- Вычисление MD5 и SHA-1 хешей -->
+
         <checksum file="${dist.dir}/${war.name}" algorithm="MD5" property="md5.actual"/>
         <checksum file="${dist.dir}/${war.name}" algorithm="SHA-1" property="sha1.actual"/>
         <echo message="MD5: ${md5.actual}"/>
         <echo message="SHA-1: ${sha1.actual}"/>
-        
-        <war destfile="${dist.dir}/${war.name}" update="true">
-            <zipfileset dir="${doc.dir}" prefix="WEB-INF/docs"/>
-            <manifest>
-                <attribute name="MD5-Digest" value="${md5.actual}"/>
-                <attribute name="SHA1-Digest" value="${sha1.actual}"/>
-            </manifest>
-        </war>
     </target>
 
-    <!-- Копирование файлов локализации -->
     <target name="native2ascii" description="Преобразование native2ascii для копий файлов локализации">
         <mkdir dir="${native.dir}"/>
         <native2ascii src="${i18n.dir}" dest="${native.dir}" 
                       includes="**/*.properties" encoding="UTF-8"/>
     </target>
 
-    <!-- Перемещение собранного проекта на сервер -->
     <target name="scp" depends="build" description="Перемещение собранного проекта по scp на выбранный сервер">
         <scp file="${dist.dir}/${war.name}" 
              todir="${scp.user}@${scp.host}:${scp.dir}" 
@@ -112,34 +90,24 @@
              trust="true"/>
     </target>
 
-    <!-- Воспроизведение музыки по завершению сборки -->
     <target name="music" depends="build">
         <sound>
             <success source="${success.sound}"/>
         </sound>
     </target>
 
-    <!-- Создание отчета о прохождении тестов -->
     <target name="report" depends="test" description="В случае успешного прохождения тестов сохраняет отчет junit в формате xml">
-        <!-- Получаем текущую ревизию Git -->
         <exec executable="git" outputproperty="git.revision">
             <arg value="rev-parse"/>
             <arg value="HEAD"/>
         </exec>
-        
-        <!-- Сохраняем информацию о ревизии -->
         <echo file="${report.dir}/git-revision.txt">${git.revision}</echo>
-        
         <echo message="Текущая ревизия Git: ${git.revision}"/>
         <echo message="Отчет о тестировании сохранен в: ${report.dir}"/>
-        
-        <!-- Добавляем отчеты в Git -->
         <exec executable="git">
             <arg value="add"/>
             <arg value="${report.dir}"/>
         </exec>
-        
-        <!-- Создаем коммит с отчетами -->
         <exec executable="git">
             <arg value="commit"/>
             <arg value="-m"/>
@@ -147,93 +115,76 @@
         </exec>
     </target>
 
-    <target name="history" description="Если проект не удаётся скомпилировать, загружается предыдущая версия из репозитория SVN">
+    <target name="history" description="Откат к рабочей версии с самого начала истории проекта">
         <property name="history.success" value="false"/>
-        <property name="history.attempts" value="0"/>
-        <property name="max.attempts" value="5"/>
-
-        <trycatch property="compile.error" reference="stack.trace">
-            <try>
-                <antcall target="compile"/>
-                <property name="history.success" value="true"/>
-            </try>
-            <catch>
-                <echo message="Компиляция не удалась. Пытаемся загрузить предыдущую версию..."/>
-
-                <!-- Получаем текущую ревизию -->
-                <exec executable="svn" outputproperty="current.revision">
-                    <arg value="info"/>
-                </exec>
-                <!-- Извлекаем номер ревизии из вывода -->
-                <propertyregex property="current.revision.number" input="${current.revision}" regexp="Revision: ([0-9]+)" select="\1"/>
-
-                <echo message="Текущая ревизия: ${current.revision.number}"/>
-
-                <for param="attempt" list="1,2,3,4,5" delimiter=",">
-                    <sequential>
+        <property name="first.revision.reached" value="false"/>
+        <exec executable="svn" outputproperty="current.revision">
+            <arg value="info"/>
+        </exec>
+        <propertyregex property="current.revision.number" input="${current.revision}" regexp="Revision: ([0-9]+)" select="\1"/>
+        <property name="original.revision.number" value="${current.revision.number}"/>
+        <while>
+            <condition>
+                <and>
+                    <not><equals arg1="${history.success}" arg2="true"/></not>
+                    <not><equals arg1="${first.revision.reached}" arg2="true"/></not>
+                </and>
+            </condition>
+            <sequential>
+                <trycatch>
+                    <try>
+                        <antcall target="compile"/>
+                        <property name="history.success" value="true"/>
+                    </try>
+                    <catch>
+                        <echo message="Сборка не удалась. Откатываемся..."/>
+                        <exec executable="svn" outputproperty="svn.info">
+                            <arg value="info"/>
+                        </exec>
+                        <propertyregex property="current.revision.number" input="${svn.info}" regexp="Revision: ([0-9]+)" select="\1"/>
                         <if>
-                            <and>
-                                <not><equals arg1="${history.success}" arg2="true"/></not>
-                                <not><equals arg1="${history.attempts}" arg2="${max.attempts}"/></not>
-                            </and>
+                            <equals arg1="${current.revision.number}" arg2="1"/>
                             <then>
-                                <echo message="Попытка @{attempt}: Откат на предыдущую ревизию"/>
-                                <math result="history.attempts" operand1="${history.attempts}" operation="+" operand2="1" datatype="int"/>
-
-                                <!-- Откат на предыдущую ревизию -->
+                                <echo message="Достигнута самая первая ревизия (${current.revision.number})"/>
+                                <property name="first.revision.reached" value="true"/>
+                            </then>
+                            <else>
                                 <exec executable="svn">
                                     <arg value="update"/>
                                     <arg value="-r"/>
                                     <arg value="PREV"/>
                                 </exec>
-
-                                <!-- Получаем текущую ревизию после отката -->
-                                <exec executable="svn" outputproperty="previous.revision">
-                                    <arg value="info"/>
-                                </exec>
-                                <propertyregex property="previous.revision.number" input="${previous.revision}" regexp="Revision: ([0-9]+)" select="\1"/>
-
-                                <trycatch>
-                                    <try>
-                                        <antcall target="compile"/>
-                                        <property name="history.success" value="true"/>
-                                        <echo message="Компиляция успешна с предыдущей версией (${previous.revision.number})"/>
-
-                                        <!-- Сохраняем разницу между версиями -->
-                                        <exec executable="svn" output="${report.dir}/diff.txt">
-                                            <arg value="diff"/>
-                                            <arg value="-r"/>
-                                            <arg value="${previous.revision.number}:${current.revision.number}"/>
-                                        </exec>
-                                    </try>
-                                    <catch>
-                                        <echo message="Компиляция не удалась и с предыдущей версией"/>
-                                    </catch>
-                                </trycatch>
-                            </then>
+                            </else>
                         </if>
-                    </sequential>
-                </for>
+                    </catch>
+                </trycatch>
+            </sequential>
+        </while>
 
-                <if>
-                    <equals arg1="${history.success}" arg2="true"/>
-                    <then>
-                        <echo message="Найдена рабочая версия. Diff сохранён в ${report.dir}/diff.txt"/>
-                    </then>
-                    <else>
-                        <echo message="Не удалось найти рабочую версию после ${max.attempts} попыток"/>
-                        <exec executable="svn">
-                            <arg value="update"/>
-                            <arg value="-r"/>
-                            <arg value="${current.revision.number}"/>
-                        </exec>
-                    </else>
-                </if>
-            </catch>
-        </trycatch>
+        <if>
+            <equals arg1="${history.success}" arg2="true"/>
+            <then>
+                <math result="next.revision" operand1="${current.revision.number}" operation="+" operand2="1" datatype="int"/>
+                <echo message="Рабочая версия найдена в ревизии ${current.revision.number}"/>
+                <echo message="Следующая ревизия: ${next.revision}"/>
+                <exec executable="svn" output="${report.dir}/diff.txt">
+                    <arg value="diff"/>
+                    <arg value="-c"/>
+                    <arg value="${next.revision}"/>
+                </exec>
+                <echo message="Diff сохранён в ${report.dir}/diff.txt"/>
+            </then>
+            <else>
+                <echo message="Не удалось найти рабочую версию до самой первой ревизии"/>
+                <exec executable="svn">
+                    <arg value="update"/>
+                    <arg value="-r"/>
+                    <arg value="${original.revision.number}"/>
+                </exec>
+            </else>
+        </if>
     </target>
 
-    <!-- Создание альтернативной версии -->
     <target name="alt" description="Создаёт альтернативную версию программы с измененными именами переменных и классов">
         <copy todir="${alt.dir}">
             <fileset dir="${src.dir}"/>
@@ -304,170 +255,104 @@
         </antcall>
     </target>
 
-    <target name="diff" description="Осуществляет проверку состояния рабочей копии">
-        <!-- Создаем директорию для отчётов, если её нет -->
+    <target name="diff" description="Проверка состояния рабочей копии и коммит изменений при наличии">
         <mkdir dir="${report.dir}"/>
-
-        <!-- Получаем статус изменений -->
         <exec executable="git" outputproperty="git.status">
             <arg value="status"/>
             <arg value="--porcelain"/>
         </exec>
-
-        <!-- Получаем текущую ревизию -->
         <exec executable="git" outputproperty="git.revision">
             <arg value="rev-parse"/>
             <arg value="HEAD"/>
         </exec>
-
         <echo message="Текущая ревизия: ${git.revision}"/>
-
-        <!-- Создаем diff-файл -->
         <exec executable="git" output="${report.dir}/current-diff.txt">
             <arg value="diff"/>
         </exec>
-
-        <!-- Проверяем, есть ли изменения -->
         <condition property="changes.exist">
             <not>
                 <equals arg1="${git.status}" arg2=""/>
             </not>
         </condition>
-
         <echo message="Статус изменений: ${git.status}"/>
-
-        <!-- Если есть изменения, предлагаем сделать коммит -->
-        <antcall target="commit-changes"/>
+        <if>
+            <isset property="changes.exist"/>
+            <then>
+                <input message="Введите комментарий для коммита:" addproperty="commit.message"/>
+                <exec executable="git">
+                    <arg value="add"/>
+                    <arg value="."/>
+                </exec>
+                <exec executable="git">
+                    <arg value="commit"/>
+                    <arg value="-m"/>
+                    <arg value="${commit.message}"/>
+                </exec>
+                <echo message="Изменения успешно закоммичены."/>
+            </then>
+        </if>
     </target>
 
-
-    <!-- Вспомогательная цель для коммита изменений -->
-    <target name="commit-changes" if="changes.exist">
-        <input message="Введите комментарий для коммита:" addproperty="commit.message"/>
-        <exec executable="git">
-            <arg value="add"/>
-            <arg value="."/>
+    <target name="env" depends="build" description="Сборка и запуск на локальном WildFly 27">
+        <echo message="Копирование WAR в WildFly..."/>
+        <copy file="${dist.dir}/${war.name}" todir="${wildfly.name}/standalone/deployments"/>
+        <echo message="Запуск развертывания через jboss-cli..."/>
+        <exec executable="${wildfly.name}/bin/jboss-cli.sh" failonerror="true">
+            <arg value="--connect"/>
+            <arg value="deployment=${dist.dir}/${war.name} --enable"/>
         </exec>
-        <exec executable="git">
-            <arg value="commit"/>
-            <arg value="-m"/>
-            <arg value="${commit.message}"/>
-        </exec>
-        <echo message="Изменения успешно закоммичены."/>
-    </target>
-
-    <!-- Локальный запуск WAR-архива через встроенный Tomcat -->
-    <target name="run-local" depends="build" description="Запускает WAR-архив на встроенном Tomcat сервере">
-        <echo message="Запуск локального Tomcat сервера..."/>
-        <echo message="Для завершения нажмите Ctrl+C"/>
-        
-        <java classname="org.apache.catalina.startup.Bootstrap" fork="true">
+        <echo message="Запуск WildFly... (Ctrl+C для остановки)"/>
+        <java fork="true" dir="${wildfly.name}/bin" classname="org.jboss.modules.Main" failonerror="true">
             <classpath>
-                <fileset dir="${lib.dir}/tomcat" includes="*.jar"/>
+                <pathelement path="${wildfly.name}/jboss-modules.jar"/>
             </classpath>
-            <jvmarg value="-Djava.version=${java.version}"/>
-            <jvmarg value="-Duser.language=${user.language}"/>
-            <jvmarg value="-Dcatalina.base=${basedir}/temp"/>
-            <jvmarg value="-Dcatalina.home=${basedir}/temp"/>
-            <arg value="start"/>
-            <sysproperty key="catalina.base" value="${basedir}/temp"/>
-            <sysproperty key="catalina.home" value="${basedir}/temp"/>
-            <sysproperty key="war.path" value="${dist.dir}/${war.name}"/>
+            <jvmarg value="-Djboss.server.base.dir=${wildfly.name}/standalone"/>
+            <jvmarg value="-Djboss.home.dir=${wildfly.name}"/>
+            <arg value="-mp"/>
+            <arg value="${wildfly.name}/modules"/>
+            <arg value="org.jboss.as.standalone"/>
+            <arg value="--server-config=standalone.xml"/>
         </java>
-        
-        <!-- Создаем папку для данных Tomcat -->
-        <mkdir dir="${basedir}/temp/webapps"/>
-        <copy file="${dist.dir}/${war.name}" todir="${basedir}/temp/webapps"/>
-        
-        <echo message="Приложение будет доступно по адресу: http://localhost:8080/WebLab3"/>
-    </target>
-    
-    <!-- Сборка и запуск в альтернативном окружении -->
-    <target name="env" depends="build" description="Осуществляет сборку и запуск программы в альтернативных окружениях">
-        <echo message="Выберите окружение для запуска:"/>
-        <echo message="1. Локальный Tomcat (ant run-local)"/>
-        <echo message="2. Удаленный сервер (ant scp)"/>
-        
-        <input message="Введите номер (1 или 2):" validargs="1,2" addproperty="env.choice"/>
-        
-        <condition property="run.local">
-            <equals arg1="${env.choice}" arg2="1"/>
-        </condition>
-        
-        <condition property="run.remote">
-            <equals arg1="${env.choice}" arg2="2"/>
-        </condition>
-        
-        <antcall target="do-run-local"/>
-        <antcall target="do-run-remote"/>
-    </target>
-    
-    <target name="do-run-local" if="run.local">
-        <antcall target="run-local"/>
-    </target>
-    
-    <target name="do-run-remote" if="run.remote">
-        <antcall target="scp"/>
-        <echo message="Приложение успешно отправлено на сервер ${scp.host}"/>
-        <echo message="Доступно по адресу: http://${scp.host}:8080/WebLab3/"/>
+        <echo message="Приложение доступно по адресу: http://localhost:8080/WebLab3"/>
     </target>
 
-    <!-- Получение из git-репозитория и упаковка в zip-архив -->
     <target name="team" description="Осуществляет получение из git-репозитория 4 предыдущих ревизий и их упаковку">
         <mkdir dir="${git.dir}"/>
-        
-        <!-- Копируем текущий .git каталог во временную директорию -->
         <copy todir="${git.dir}/.git">
             <fileset dir=".git"/>
         </copy>
-        
-        <!-- Получаем список последних 4 ревизий -->
         <exec executable="git" outputproperty="git.revisions" dir="${basedir}">
             <arg value="log"/>
             <arg value="-n"/>
             <arg value="4"/>
             <arg value="--format=%H"/>
         </exec>
-        
         <echo message="Найдены ревизии: ${git.revisions}"/>
         <echo file="${git.dir}/revisions.txt">${git.revisions}</echo>
-        
-        <!-- Для каждой ревизии создаем отдельную директорию -->
         <for list="${git.revisions}" param="revision" delimiter="${line.separator}">
             <sequential>
                 <echo message="Обрабатываем ревизию: @{revision}"/>
-                
                 <mkdir dir="${git.dir}/rev-@{revision}"/>
-                
-                <!-- Клонируем основной репозиторий -->
                 <exec executable="git" dir="${git.dir}/rev-@{revision}">
                     <arg value="init"/>
                 </exec>
-                
                 <copy todir="${git.dir}/rev-@{revision}/.git">
                     <fileset dir="${git.dir}/.git"/>
                 </copy>
-                
-                <!-- Переключаемся на нужную ревизию -->
                 <exec executable="git" dir="${git.dir}/rev-@{revision}">
                     <arg value="checkout"/>
                     <arg value="@{revision}"/>
                     <arg value="--force"/>
                 </exec>
-                
-                <!-- Собираем WAR-архив для этой ревизии -->
                 <ant dir="${git.dir}/rev-@{revision}" target="build" inheritAll="false">
                     <property name="dist.dir" value="${git.dir}/rev-@{revision}/dist"/>
                 </ant>
             </sequential>
         </for>
-        
-        <!-- Упаковываем все WAR-файлы в один ZIP-архив -->
         <mkdir dir="${dist.dir}"/>
         <zip destfile="${dist.dir}/${zip.name}">
             <fileset dir="${git.dir}" includes="**/dist/*.war"/>
         </zip>
-        
         <echo message="Создан архив ${zip.name} с WAR-файлами из 4 последних ревизий"/>
     </target>
 </project> 
