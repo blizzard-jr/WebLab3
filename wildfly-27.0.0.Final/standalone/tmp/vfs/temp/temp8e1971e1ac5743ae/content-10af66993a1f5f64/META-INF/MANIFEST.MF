@@ -1,0 +1,7 @@
+Manifest-Version: 1.0
+Ant-Version: Apache Ant 1.10.14
+Created-By: 17.0.11+7-LTS-207 (Oracle Corporation)
+Implementation-Title: WebLab3
+Implementation-Version: 1.0.0
+Built-By: gr1ckly
+
