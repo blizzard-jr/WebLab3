@@ -1,10 +1,6 @@
 package org.example.weblab3;
 
-
-
-
-
-
+import org.example.weblab3.mbeans.HitAdmin;
 import jakarta.faces.bean.ManagedProperty;
 import jakarta.faces.bean.ManagedBean;
 import jakarta.faces.view.ViewScoped;
@@ -13,6 +9,7 @@ import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.logging.Logger;
+import java.util.List;
 
 
 @ManagedBean
@@ -23,9 +20,16 @@ public class MainBean implements Serializable {
     @ManagedProperty("#{resultManager}")
     private ResultManager resultManager;
 
+    @ManagedProperty("#{hitAdmin}")
+    private HitAdmin hitAdmin;
+
     public void setResultManager(ResultManager resultManager) {
         logger.info("setResultManager called" + resultManager);
         this.resultManager = resultManager;
+    }
+
+    public void setHitAdmin(HitAdmin hitAdmin) {
+        this.hitAdmin = hitAdmin;
     }
 
     private Double x;
@@ -101,9 +105,31 @@ public class MainBean implements Serializable {
         return r;
     }
 
+    private void updatePointsForNewR(Double newR) {
+        if (newR != null && resultManager != null) {
+            List<PointResult> allPoints = resultManager.getAllResults();
+            // Сначала получаем уведомление от MBean с текущими значениями
+            String notification = hitAdmin.ToNotify();
+            if (!notification.isEmpty()) {
+                logger.info("Уведомление при изменении R: " + notification);
+                // Здесь можно добавить логику отображения уведомления пользователю
+            }
+            
+            // Затем обновляем точки
+            for (PointResult point : allPoints) {
+                boolean newResult = checkArea(point.getX(), point.getY(), newR);
+                point.setResult(newResult);
+                resultManager.updateResult(point);
+            }
+        }
+    }
+
     public void setR(Double r) {
         logger.info("Установка R: " + r);
         logger.info(r.getClass().getName());
+        if (this.r != null && !this.r.equals(r)) {
+            updatePointsForNewR(r);
+        }
         this.r = r;
     }
 }

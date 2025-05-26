@@ -63,4 +63,20 @@ public class ResultManager {
             }
         }
     }
+
+    public void updateResult(PointResult point) {
+        try {
+            userTransaction.begin();
+            logger.info("Updating PointResult: " + point);
+            entityManager.merge(point);
+            userTransaction.commit();
+        } catch (Exception e) {
+            logger.severe("Error updating PointResult: " + e.getMessage());
+            try {
+                userTransaction.rollback();
+            } catch (Exception rollbackEx) {
+                logger.severe("Rollback failed: " + rollbackEx.getMessage());
+            }
+        }
+    }
 }

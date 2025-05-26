@@ -1,0 +1,5 @@
+"{\"WFLYCTL0080: Failed services\" => {\"jboss.persistenceunit.\\\"WebLab3.war#pointPU\\\"\" => \"jakarta.persistence.PersistenceException: [PersistenceUnit: pointPU] Unable to build Hibernate SessionFactory
+    Caused by: jakarta.persistence.PersistenceException: [PersistenceUnit: pointPU] Unable to build Hibernate SessionFactory
+    Caused by: java.lang.IllegalStateException: PostInitCallback queue could not be processed...
+        - PostInitCallbackEntry - Entity(org.example.weblab3.PointResult) `sqmMultiTableInsertStrategy` interpretation
+\"}}"
