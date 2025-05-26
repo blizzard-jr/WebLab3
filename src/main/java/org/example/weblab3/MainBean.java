@@ -1,13 +1,17 @@
 package org.example.weblab3;
 
+import org.example.weblab3.mbeans.AverageIntervalMBean;
 import org.example.weblab3.mbeans.HitAdmin;
 import jakarta.inject.Named;
 import jakarta.faces.view.ViewScoped;
 import jakarta.inject.Inject;
 
+import javax.management.MBeanServer;
 import java.io.Serializable;
+import java.lang.management.ManagementFactory;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Date;
 import java.util.logging.Logger;
 import java.util.List;
 
@@ -37,7 +41,11 @@ public class MainBean implements Serializable {
         result.setY(y);
         result.setR(r);
         result.setCheckTime(LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
-
+        MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
+        try {
+            Object res = mbs.invoke(AverageIntervalMBean.getObjectName(), "click", new Object[]{new Date(result.getExecutionTime())}, new String[]{"java.util.Date"});
+        } catch (Exception e){
+        }
         // Логика проверки попадания точки
         boolean hits = checkArea(x, y, r);
         result.setResult(hits);
