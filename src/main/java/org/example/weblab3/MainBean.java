@@ -43,8 +43,9 @@ public class MainBean implements Serializable {
         result.setCheckTime(LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
         MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
         try {
-            Object res = mbs.invoke(AverageIntervalMBean.getObjectName(), "click", new Object[]{new Date(result.getExecutionTime())}, new String[]{"java.util.Date"});
+            Object res = mbs.invoke(AverageIntervalMBean.getObjectName(), "click", new Object[]{new Date()}, new String[]{"java.util.Date"});
         } catch (Exception e){
+            logger.info(e.toString());
         }
         // Логика проверки попадания точки
         boolean hits = checkArea(x, y, r);

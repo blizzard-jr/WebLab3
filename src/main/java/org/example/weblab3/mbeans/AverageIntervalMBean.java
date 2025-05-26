@@ -6,6 +6,7 @@ import java.util.Date;
 public interface AverageIntervalMBean {
     Date getAverageInterval();
     void click(Date currTime);
+    String getError();
     static ObjectName getObjectName() throws Exception{
         return new ObjectName("org.example.weblab3.mbeans:type=AverageIntervalMBean");
     }
