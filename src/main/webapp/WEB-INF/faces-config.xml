@@ -24,4 +24,10 @@
             <redirect/>
         </navigation-case>
     </navigation-rule>
+
+    <managed-bean>
+        <managed-bean-name>mainBean</managed-bean-name>
+        <managed-bean-class>org.example.weblab3.MainBean</managed-bean-class>
+        <managed-bean-scope>application</managed-bean-scope>
+    </managed-bean>
 </faces-config>

@@ -125,9 +125,9 @@
         </subsystem>
         <subsystem xmlns="urn:jboss:domain:bean-validation:1.0"/>
         <subsystem xmlns="urn:jboss:domain:core-management:1.0"/>
-        <subsystem xmlns="urn:jboss:domain:datasources:6.0">
+        <subsystem xmlns="urn:jboss:domain:datasources:7.0">
             <datasources>
-                <datasource jndi-name="java:/PostgresDS" pool-name="PostgresDS" enabled="true" jta="true">
+                <datasource jta="true" jndi-name="java:/PostgresDS" pool-name="PostgresDS" enabled="true">
                     <connection-url>jdbc:postgresql://localhost:5432/postgres</connection-url>
                     <driver>postgresql</driver>
                     <security>
@@ -147,9 +147,9 @@
                     <driver name="h2" module="com.h2database.h2">
                         <xa-datasource-class>org.h2.jdbcx.JdbcDataSource</xa-datasource-class>
                     </driver>
-                        <driver name="postgresql" module="org.postgresql">
-                            <driver-class>org.postgresql.Driver</driver-class>
-                        </driver>
+                    <driver name="postgresql" module="org.postgresql">
+                        <driver-class>org.postgresql.Driver</driver-class>
+                    </driver>
                 </drivers>
             </datasources>
         </subsystem>
