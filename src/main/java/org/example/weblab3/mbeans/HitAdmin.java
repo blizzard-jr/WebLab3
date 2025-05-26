@@ -9,8 +9,7 @@ import jakarta.inject.Inject;
 import java.util.List;
 import java.util.logging.Logger;
 
-@Named("hitAdmin")
-@ApplicationScoped
+
 public class HitAdmin implements HitAdminMBean {
     private static final Logger logger = Logger.getLogger(HitAdmin.class.getName());
     
@@ -19,7 +18,9 @@ public class HitAdmin implements HitAdminMBean {
 
     @Override
     public long getCommonCount() {
-        return resultManager.getAllResults().size();
+        long ans = resultManager.getAllResults().size();
+        logger.warning(" " + ans);
+        return ans;
     }
 
     @Override
