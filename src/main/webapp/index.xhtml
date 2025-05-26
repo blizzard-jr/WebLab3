@@ -86,7 +86,7 @@
         <h:inputHidden id="hiddenR" value="#{mainBean.r}" />
 
         <h:commandButton id="check" value="Проверить" action="#{mainBean.checkPoint}" styleClass="checkButton">
-            <f:ajax execute="xSpinner yInput rSpinner" render="result" onevent="handleAjaxEvent"/>
+            <f:ajax execute="hiddenX hiddenY hiddenR" render="result" onevent="handleAjaxEvent"/>
         </h:commandButton>
 
         <h:outputScript>
@@ -126,7 +126,8 @@
         </h:dataTable>
     </h:form>
 
-    <!-- JavaScript в конце body -->
+    <!-- Подключение part.js до main.js -->
+    <h:outputScript name="js/part.js" target="body"/>
     <h:outputScript name="js/main.js" target="body"/>
 </h:body>
 </html>

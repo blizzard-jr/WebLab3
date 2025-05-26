@@ -2,14 +2,14 @@ package org.example.weblab3.mbeans;
 
 import org.example.weblab3.PointResult;
 import org.example.weblab3.ResultManager;
-import jakarta.faces.bean.ManagedBean;
-import jakarta.faces.bean.ApplicationScoped;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Named;
 import jakarta.inject.Inject;
 
 import java.util.List;
 import java.util.logging.Logger;
 
-@ManagedBean
+@Named("hitAdmin")
 @ApplicationScoped
 public class HitAdmin implements HitAdminMBean {
     private static final Logger logger = Logger.getLogger(HitAdmin.class.getName());

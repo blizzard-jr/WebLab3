@@ -2,27 +2,20 @@ package org.example.weblab3;
 
 
 import jakarta.annotation.Resource;
-import jakarta.ejb.EJB;
-import jakarta.ejb.Stateless;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Named;
 
-import jakarta.faces.bean.ApplicationScoped;
-import jakarta.faces.bean.ManagedBean;
-import jakarta.faces.bean.ManagedProperty;
-import jakarta.inject.Inject;
-
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
 
-import jakarta.inject.Named;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.transaction.UserTransaction;
 
 @Named("resultManager")
 @ApplicationScoped
-public class ResultManager implements Serializable {
+public class ResultManager {
     private static final Logger logger = Logger.getLogger(ResultManager.class.getName());
 
     @PersistenceContext(unitName = "pointPU")

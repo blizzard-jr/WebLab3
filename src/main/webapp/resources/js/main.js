@@ -51,15 +51,13 @@ function handleClick(event) {
         document.getElementById('pointForm:hiddenY').value = scaledY;
         document.getElementById('pointForm:hiddenR').value = hasUserInputR;
 
-        jsf.ajax.request(document.getElementById('pointForm:check'), null, {
-            execute: 'pointForm:hiddenX pointForm:hiddenY pointForm:hiddenR',
-            render: 'pointForm:result',
-            onevent: function(data) {
-                if (data.status === 'success') {
-                    drawPoint(); // Отрисовываем точку после успешного обновления
-                }
-            }
-        });
+        // Используем стандартный submit вместо jsf.ajax.request
+        const form = document.getElementById('pointForm');
+        const checkButton = document.getElementById('pointForm:check');
+        
+        // Создаем событие клика на кнопке
+        checkButton.click();
+        
     } else {
         showToastError("Выберите значение r");
         return;
@@ -214,25 +212,31 @@ function handleClick(event) {
                 const resElement = row.querySelector('[id$="resultValue"]');
                 const rElement = row.querySelector('[id$="rValue"]')
 
-                if (xElement && yElement && resElement) {
-                    const x = parseFloat(xElement.textContent.trim());
-                    const y = parseFloat(yElement.textContent.trim());
-                    const res = resElement.textContent.trim();
-                    const r = parseFloat(rElement.textContent.trim());
+                if (xElement && yElement && resElement && rElement) {
+                    const xText = xElement.textContent ? xElement.textContent.trim() : '';
+                    const yText = yElement.textContent ? yElement.textContent.trim() : '';
+                    const resText = resElement.textContent ? resElement.textContent.trim() : '';
+                    const rText = rElement.textContent ? rElement.textContent.trim() : '';
 
-                    if (!isNaN(x) && !isNaN(y)) {
+                    const x = parseFloat(xText);
+                    const y = parseFloat(yText);
+                    const r = parseFloat(rText);
+
+                    if (!isNaN(x) && !isNaN(y) && !isNaN(r) && resText) {
                         const dpi = window.devicePixelRatio;
-                        ctx.fillStyle = (res === "true") ? "green" : "red";
+                        ctx.fillStyle = (resText === "true") ? "green" : "red";
                         ctx.beginPath();
-                        let scaleX = xCenter + (x / hasUserInputR) * baseScaling;
-                        let scaleY = yCenter - (y / hasUserInputR) * baseScaling;
+                        // Используем r из данных, если hasUserInputR не определен
+                        const currentR = hasUserInputR || r;
+                        let scaleX = xCenter + (x / currentR) * baseScaling;
+                        let scaleY = yCenter - (y / currentR) * baseScaling;
                         ctx.arc(scaleX, scaleY, 5, 0, Math.PI * 2);
                         ctx.fill();
                     } else {
-                        console.error('Некорректные данные для точки:', { x, y, res });
+                        console.warn('Некорректные данные для точки:', { x: xText, y: yText, r: rText, res: resText });
                     }
                 } else {
-                    console.error('Не найдены элементы с данными:', { xElement, yElement, resElement });
+                    console.warn('Не найдены элементы с данными в строке таблицы');
                 }
             });
         } else {

@@ -1,9 +1,9 @@
 package org.example.weblab3;
 
 import org.example.weblab3.mbeans.HitAdmin;
-import jakarta.faces.bean.ManagedProperty;
-import jakarta.faces.bean.ManagedBean;
+import jakarta.inject.Named;
 import jakarta.faces.view.ViewScoped;
+import jakarta.inject.Inject;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
@@ -12,25 +12,16 @@ import java.util.logging.Logger;
 import java.util.List;
 
 
-@ManagedBean
+@Named("mainBean")
 @ViewScoped
 public class MainBean implements Serializable {
     private static final Logger logger = Logger.getLogger(MainBean.class.getName());
 
-    @ManagedProperty("#{resultManager}")
+    @Inject
     private ResultManager resultManager;
 
-    @ManagedProperty("#{hitAdmin}")
+    @Inject
     private HitAdmin hitAdmin;
-
-    public void setResultManager(ResultManager resultManager) {
-        logger.info("setResultManager called" + resultManager);
-        this.resultManager = resultManager;
-    }
-
-    public void setHitAdmin(HitAdmin hitAdmin) {
-        this.hitAdmin = hitAdmin;
-    }
 
     private Double x;
     private Double y;

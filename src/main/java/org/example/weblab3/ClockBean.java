@@ -1,13 +1,13 @@
 package org.example.weblab3;
 
-import jakarta.faces.bean.ManagedBean;
-import jakarta.faces.bean.ViewScoped;
+import jakarta.inject.Named;
+import jakarta.faces.view.ViewScoped;
 
 import java.io.Serializable;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-@ManagedBean
+@Named("clockBean")
 @ViewScoped
 public class ClockBean implements Serializable {
     public String getCurrentTime() {
