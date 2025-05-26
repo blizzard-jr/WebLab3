@@ -5,9 +5,12 @@ package org.example.weblab3;
 
 
 
+import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.faces.bean.ManagedProperty;
 import jakarta.faces.bean.ManagedBean;
 import jakarta.faces.view.ViewScoped;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
@@ -15,12 +18,12 @@ import java.time.format.DateTimeFormatter;
 import java.util.logging.Logger;
 
 
-@ManagedBean
+@Named("mainBean")
 @ViewScoped
 public class MainBean implements Serializable {
     private static final Logger logger = Logger.getLogger(MainBean.class.getName());
 
-    @ManagedProperty("#{resultManager}")
+    @Inject
     private ResultManager resultManager;
 
     public void setResultManager(ResultManager resultManager) {
