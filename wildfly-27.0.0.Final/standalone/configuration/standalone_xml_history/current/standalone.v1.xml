@@ -536,9 +536,4 @@
             <remote-destination host="${jboss.mail.server.host:localhost}" port="${jboss.mail.server.port:25}"/>
         </outbound-socket-binding>
     </socket-binding-group>
-    <deployments>
-        <deployment name="WebLab3-1.0-SNAPSHOT.war" runtime-name="WebLab3-1.0-SNAPSHOT.war">
-            <fs-archive path="/home/gr1ckly/Desktop/gr1ckly_files/ITMO_CSE_27/2024-2025/BSE/Lab_4/WebLab3/target/WebLab3-1.0-SNAPSHOT.war"/>
-        </deployment>
-    </deployments>
 </server>

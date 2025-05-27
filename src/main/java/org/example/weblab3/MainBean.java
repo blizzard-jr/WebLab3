@@ -108,14 +108,6 @@ public class MainBean implements Serializable {
     private void updatePointsForNewR(Double newR) {
         if (newR != null && resultManager != null) {
             List<PointResult> allPoints = resultManager.getAllResults();
-            // Сначала получаем уведомление от MBean с текущими значениями
-            String notification = hitAdmin.ToNotify();
-            if (!notification.isEmpty()) {
-                logger.info("Уведомление при изменении R: " + notification);
-                // Здесь можно добавить логику отображения уведомления пользователю
-            }
-            
-            // Затем обновляем точки
             for (PointResult point : allPoints) {
                 boolean newResult = checkArea(point.getX(), point.getY(), newR);
                 point.setResult(newResult);

@@ -537,7 +537,7 @@
         </outbound-socket-binding>
     </socket-binding-group>
     <deployments>
-        <deployment name="WebLab3-1.0-SNAPSHOT.war" runtime-name="WebLab3-1.0-SNAPSHOT.war" enabled="false">
+        <deployment name="WebLab3-1.0-SNAPSHOT.war" runtime-name="WebLab3-1.0-SNAPSHOT.war">
             <fs-archive path="/Users/blizzard.jr/ITMOUniversity/Опи/OPI4/target/WebLab3-1.0-SNAPSHOT.war"/>
         </deployment>
     </deployments>

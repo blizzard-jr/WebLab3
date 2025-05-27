@@ -9,14 +9,18 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.Persistence;
 
+import javax.management.Notification;
+import javax.management.NotificationBroadcasterSupport;
 import java.util.List;
 import java.util.logging.Logger;
 import java.util.ArrayList;
 
 @Named("hitAdmin")
 @ApplicationScoped
-public class HitAdmin implements HitAdminMBean {
+public class HitAdmin extends NotificationBroadcasterSupport implements HitAdminMBean {
     private static final Logger logger = Logger.getLogger(HitAdmin.class.getName());
+    private long sequenceNumber = 1;
+
 
     private List<PointResult> getAllResultsDirectly() {
         try {
@@ -84,36 +88,35 @@ public class HitAdmin implements HitAdminMBean {
     }
 
     @Override
-    public String ToNotify() {
+    public void ToNotify() {
         try {
             List<PointResult> allPoints = getAllResultsDirectly();
-            if (allPoints.isEmpty()) {
-                return "Нет сохраненных точек";
-            }
+            if (allPoints.isEmpty()) return;
 
-            StringBuilder notification = new StringBuilder();
             Double currentR = allPoints.get(0).getR();
-            
             if (currentR != null) {
                 for (PointResult point : allPoints) {
                     boolean currentResult = point.getResult();
                     boolean wouldBeValid = point.checkHit();
-                    
+
                     if (currentResult && !wouldBeValid) {
-                        notification.append(String.format(
-                            "Точка (%.2f, %.2f) выйдет за пределы области при R=%.2f\n",
-                            point.getX(), point.getY(), currentR
-                        ));
+                        String message = String.format(
+                                "Точка (%.2f, %.2f) выйдет за пределы области при R=%.2f",
+                                point.getX(), point.getY(), currentR
+                        );
+                        Notification notification = new Notification(
+                                "point.out.of.bounds",         // тип уведомления
+                                this,                          // источник
+                                sequenceNumber++,              // уникальный номер
+                                System.currentTimeMillis(),    // метка времени
+                                message                        // сообщение
+                        );
+                        sendNotification(notification);
                     }
                 }
             }
-            
-            return notification.toString().isEmpty() ? 
-                   "Все точки останутся в допустимой области" : 
-                   notification.toString();
         } catch (Exception e) {
-            logger.severe("Error in ToNotify: " + e.getMessage());
-            return "Ошибка при получении уведомлений: " + e.getMessage();
+            logger.severe("Ошибка при отправке уведомления: " + e.getMessage());
         }
     }
 }
