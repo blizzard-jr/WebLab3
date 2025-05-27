@@ -1,0 +1,24 @@
+<changelist name="Uncommitted_changes_before_Update_at_26_05_2025,_18_42_[Changes]" date="1748274163270" recycled="false" toDelete="true">
+  <option name="PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Update_at_26_05_2025,_18_42_[Changes]/shelved.patch" />
+  <option name="DESCRIPTION" value="Uncommitted changes before Update at 26.05.2025, 18:42 [Changes]" />
+  <binary>
+    <option name="BEFORE_PATH" />
+    <option name="AFTER_PATH" value="wildfly-27.0.0.Final/standalone/data/tx-object-store/ShadowNoFileLockStore/defaultStore/EISNAME/0_ffff7f000101_7733a32c_683480d1_14" />
+    <option name="SHELVED_PATH" value="$PROJECT_DIR$/.idea/shelf/Uncommitted_changes_before_Update_at_26_05_2025,_18_42_[Changes]/0_ffff7f000101_7733a32c_683480d1_14" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="wildfly-27.0.0.Final/standalone/data/content/4d/df5e0bc62d4f47aa4a2b04e0562049c004cab2/content" />
+    <option name="AFTER_PATH" />
+    <option name="SHELVED_PATH" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="wildfly-27.0.0.Final/standalone/data/content/15/b7679a5730c364946629d6fc2fba7081ee2257/content" />
+    <option name="AFTER_PATH" />
+    <option name="SHELVED_PATH" />
+  </binary>
+  <binary>
+    <option name="BEFORE_PATH" value="wildfly-27.0.0.Final/standalone/data/content/8a/5b36025ba9b5eb5d8a79cde9b7750238bd8f05/content" />
+    <option name="AFTER_PATH" />
+    <option name="SHELVED_PATH" />
+  </binary>
+</changelist>
