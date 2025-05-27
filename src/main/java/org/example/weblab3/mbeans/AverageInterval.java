@@ -12,8 +12,8 @@ public class AverageInterval implements AverageIntervalMBean, Serializable {
     private String error = "";
 
     @Override
-    public Date getAverageInterval() {
-        return new Date(this.averageInterval.get());
+    public Long getAverageInterval() {
+        return this.averageInterval.get();
     }
 
     @Override

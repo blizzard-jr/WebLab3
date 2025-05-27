@@ -4,7 +4,7 @@ import javax.management.ObjectName;
 import java.util.Date;
 
 public interface AverageIntervalMBean {
-    Date getAverageInterval();
+    Long getAverageInterval();
     void click(Date currTime);
     String getError();
     static ObjectName getObjectName() throws Exception{
