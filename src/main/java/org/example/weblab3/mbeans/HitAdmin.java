@@ -17,15 +17,9 @@ import java.util.ArrayList;
 @ApplicationScoped
 public class HitAdmin implements HitAdminMBean {
     private static final Logger logger = Logger.getLogger(HitAdmin.class.getName());
-    
-    @Inject
-    private ResultManager resultManager;
 
     private List<PointResult> getAllResultsDirectly() {
         try {
-            if (resultManager != null) {
-                return resultManager.getAllResults();
-            }
             EntityManagerFactory emf = null;
             EntityManager em = null;
             try {

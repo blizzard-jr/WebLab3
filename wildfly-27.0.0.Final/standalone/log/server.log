@@ -10955,3 +10955,29 @@ Caused by: org.jboss.weld.exceptions.UnserializableDependencyException: WELD-001
 2025-05-26 21:47:20,201 INFO  [SQL dialect] (RMI TCP Connection(3)-127.0.0.1) HHH000400: Using dialect: org.hibernate.dialect.PostgreSQLDialect
 2025-05-26 21:47:20,203 INFO  [org.hibernate.envers.boot.internal.EnversServiceImpl] (RMI TCP Connection(3)-127.0.0.1) Envers integration enabled? : true
 2025-05-26 21:47:20,208 INFO  [stdout] (RMI TCP Connection(3)-127.0.0.1) Hibernate: SELECT id, x, y, r, result, executiontime, checktime FROM pointresult ORDER BY checktime DESC
+2025-05-26 21:58:13,216 INFO  [org.wildfly.extension.undertow] (ServerService Thread Pool -- 21) WFLYUT0022: Unregistered web context: '/WebLab3-1.0-SNAPSHOT' from server 'default-server'
+2025-05-26 21:58:13,230 INFO  [org.jboss.as.jpa] (ServerService Thread Pool -- 97) WFLYJPA0011: Stopping Persistence Unit (phase 2 of 2) Service 'WebLab3-1.0-SNAPSHOT.war#pointPU'
+2025-05-26 21:58:13,231 INFO  [org.hibernate.orm.beans] (ServerService Thread Pool -- 97) HHH10005004: Stopping BeanContainer : org.hibernate.resource.beans.container.internal.CdiBeanContainerExtendedAccessImpl@436e6ac4
+2025-05-26 21:58:13,231 INFO  [org.jboss.as.jpa] (ServerService Thread Pool -- 97) WFLYJPA0011: Stopping Persistence Unit (phase 1 of 2) Service 'WebLab3-1.0-SNAPSHOT.war#pointPU'
+2025-05-26 21:58:13,250 INFO  [org.jboss.as.server.deployment] (MSC service thread 1-3) WFLYSRV0028: Stopped deployment WebLab3-1.0-SNAPSHOT.war (runtime-name: WebLab3-1.0-SNAPSHOT.war) in 38ms
+2025-05-26 21:58:13,260 INFO  [org.jboss.as.server] (management-handler-thread - 2) WFLYSRV0009: Undeployed "WebLab3-1.0-SNAPSHOT.war" (runtime-name: "WebLab3-1.0-SNAPSHOT.war")
+2025-05-26 21:58:13,291 INFO  [org.jboss.as.server] (management-handler-thread - 2) WFLYSRV0272: Suspending server
+2025-05-26 21:58:13,292 INFO  [org.jboss.as.ejb3] (management-handler-thread - 2) WFLYEJB0493: Jakarta Enterprise Beans subsystem suspension complete
+2025-05-26 21:58:13,295 INFO  [org.jboss.as.server] (Management Triggered Shutdown) WFLYSRV0241: Shutting down in response to management operation 'shutdown'
+2025-05-26 21:58:13,300 INFO  [org.wildfly.extension.undertow] (ServerService Thread Pool -- 93) WFLYUT0022: Unregistered web context: '/WebLab3' from server 'default-server'
+2025-05-26 21:58:13,312 INFO  [org.jboss.as.mail.extension] (MSC service thread 1-8) WFLYMAIL0002: Unbound mail session [java:jboss/mail/Default]
+2025-05-26 21:58:13,312 INFO  [org.wildfly.extension.undertow] (MSC service thread 1-5) WFLYUT0019: Host default-host stopping
+2025-05-26 21:58:13,314 INFO  [org.jboss.as.jpa] (ServerService Thread Pool -- 94) WFLYJPA0011: Stopping Persistence Unit (phase 2 of 2) Service 'WebLab3.war#pointPU'
+2025-05-26 21:58:13,314 INFO  [org.jboss.as.connector.subsystems.datasources] (MSC service thread 1-6) WFLYJCA0010: Unbound data source [java:jboss/datasources/ExampleDS]
+2025-05-26 21:58:13,314 INFO  [org.hibernate.orm.beans] (ServerService Thread Pool -- 94) HHH10005004: Stopping BeanContainer : org.hibernate.resource.beans.container.internal.CdiBeanContainerExtendedAccessImpl@513587e2
+2025-05-26 21:58:13,315 INFO  [org.jboss.as.jpa] (ServerService Thread Pool -- 94) WFLYJPA0011: Stopping Persistence Unit (phase 1 of 2) Service 'WebLab3.war#pointPU'
+2025-05-26 21:58:13,315 INFO  [org.jboss.as.connector.deployers.jdbc] (MSC service thread 1-2) WFLYJCA0019: Stopped Driver service with driver-name = h2
+2025-05-26 21:58:13,315 INFO  [org.jboss.as.connector.subsystems.datasources] (MSC service thread 1-1) WFLYJCA0010: Unbound data source [java:/PostgresDS]
+2025-05-26 21:58:13,316 INFO  [org.jboss.as.connector.deployers.jdbc] (MSC service thread 1-1) WFLYJCA0019: Stopped Driver service with driver-name = postgresql
+2025-05-26 21:58:13,317 INFO  [org.wildfly.extension.undertow] (MSC service thread 1-8) WFLYUT0008: Undertow HTTP listener default suspending
+2025-05-26 21:58:13,317 INFO  [org.wildfly.extension.undertow] (MSC service thread 1-3) WFLYUT0008: Undertow HTTPS listener https suspending
+2025-05-26 21:58:13,317 INFO  [org.wildfly.extension.undertow] (MSC service thread 1-8) WFLYUT0007: Undertow HTTP listener default stopped, was bound to 127.0.0.1:8080
+2025-05-26 21:58:13,317 INFO  [org.wildfly.extension.undertow] (MSC service thread 1-3) WFLYUT0007: Undertow HTTPS listener https stopped, was bound to 127.0.0.1:8443
+2025-05-26 21:58:13,318 INFO  [org.wildfly.extension.undertow] (MSC service thread 1-3) WFLYUT0004: Undertow 2.3.0.Final stopping
+2025-05-26 21:58:13,337 INFO  [org.jboss.as.server.deployment] (MSC service thread 1-5) WFLYSRV0028: Stopped deployment WebLab3.war (runtime-name: WebLab3.war) in 37ms
+2025-05-26 21:58:13,339 INFO  [org.jboss.as] (MSC service thread 1-1) WFLYSRV0050: WildFly Full 27.0.0.Final (WildFly Core 19.0.0.Final) stopped in 39ms
